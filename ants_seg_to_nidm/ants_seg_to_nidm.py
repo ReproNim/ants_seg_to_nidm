@@ -2,12 +2,12 @@
 #!/usr/bin/env python
 #**************************************************************************************
 #**************************************************************************************
-#  fsl_seg_to_nidm.py
+#  ants_seg_to_nidm.py
 #  License: GPL
 #**************************************************************************************
 #**************************************************************************************
 # Date: June 6, 2019                 Coded by: Brainhack'ers
-# Filename: fsl_seg_to_nidm.py
+# Filename: ants_seg_to_nidm.py
 #
 # Program description:  This program will load in JSON output from FSL's FAST/FIRST
 # segmentation tool, augment the FSL anatomical region designations with common data element
@@ -64,6 +64,17 @@ import tempfile
 
 from segstats_jsonld import mapping_data
 
+def loadfreesurferlookuptable(lookup_table):
+    lookup_table_dic={}
+    with open(lookup_table) as fp:
+        line=fp.readline()
+        cnt = 1
+        while line:
+            lookup_table_dic[line.split()[0]]:line.split()[1]
+            line = fp.readline()
+
+
+    return lookup_table_dic
 
 def url_validator(url):
     '''
@@ -101,12 +112,12 @@ def add_seg_data(nidmdoc, measure, json_map, subjid, png_file=None, output_file=
         first_row=True
 
         #for each of the header items create a dictionary where namespaces are freesurfer
-        software_activity = nidmdoc.graph.activity(niiri[getUUID()],other_attributes={Constants.NIDM_PROJECT_DESCRIPTION:"FSL FAST/FIRST segmentation statistics"})
+        software_activity = nidmdoc.graph.activity(niiri[getUUID()],other_attributes={Constants.NIDM_PROJECT_DESCRIPTION:"ANTS segmentation statistics"})
 
         #create software agent and associate with software activity
         #software_agent = nidmdoc.graph.agent(QualifiedName(provNamespace("niiri",Constants.NIIRI),getUUID()),other_attributes={
         software_agent = nidmdoc.graph.agent(niiri[getUUID()],other_attributes={
-            QualifiedName(provNamespace("Neuroimaging_Analysis_Software",Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE),""):Constants.FSL ,
+            QualifiedName(provNamespace("Neuroimaging_Analysis_Software",Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE),""):Constants.ANTS ,
             prov.PROV_TYPE:prov.PROV["SoftwareAgent"]} )
         #create qualified association with brain volume computation activity
         nidmdoc.graph.association(activity=software_activity,agent=software_agent,other_attributes={PROV_ROLE:Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE})
@@ -132,7 +143,7 @@ def add_seg_data(nidmdoc, measure, json_map, subjid, png_file=None, output_file=
 
         #datum_entity=nidmdoc.graph.entity(QualifiedName(provNamespace("niiri",Constants.NIIRI),getUUID()),other_attributes={
         datum_entity=nidmdoc.graph.entity(niiri[getUUID()],other_attributes={
-                    prov.PROV_TYPE:QualifiedName(provNamespace("nidm","http://purl.org/nidash/nidm#"),"FSLStatsCollection")})
+                    prov.PROV_TYPE:QualifiedName(provNamespace("nidm","http://purl.org/nidash/nidm#"),"ANTSStatsCollection")})
         nidmdoc.graph.wasGeneratedBy(datum_entity,software_activity)
 
         #iterate over measure dictionary where measures are the lines in the FS stats files which start with '# Measure' and
@@ -256,7 +267,7 @@ def add_seg_data(nidmdoc, measure, json_map, subjid, png_file=None, output_file=
 
                 software_activity = niiri[getUUID()]
                 nidm_graph.add((software_activity,RDF.type,Constants.PROV['Activity']))
-                nidm_graph.add((software_activity,Constants.DCT["description"],Literal("FSL FAST/FIRST segmentation statistics")))
+                nidm_graph.add((software_activity,Constants.DCT["description"],Literal("ANTS segmentation statistics")))
                 fs = Namespace(Constants.FSL)
 
 
@@ -284,7 +295,7 @@ def add_seg_data(nidmdoc, measure, json_map, subjid, png_file=None, output_file=
                 #add freesurfer data
                 datum_entity=niiri[getUUID()]
                 nidm_graph.add((datum_entity, RDF.type, Constants.PROV['Entity']))
-                nidm_graph.add((datum_entity,RDF.type,Constants.NIDM["FSLStatsCollection"]))
+                nidm_graph.add((datum_entity,RDF.type,Constants.NIDM["ANTSStatsCollection"]))
                 nidm_graph.add((datum_entity, Constants.PROV['wasGeneratedBy'], software_activity))
 
                 #iterate over measure dictionary where measures are the lines in the FS stats files which start with '# Measure' and
@@ -456,16 +467,17 @@ def test_connection(remote=False):
         pass
     return False
 
-def read_fsl_stats(fsl_stats_file):
+def read_ants_stats(ants_stats_file, mri_file):
     '''
-    Reads in an FSL FIRST/FAST JSON file and converts to a measures dictionary with keys:
+    Reads in an ANTS stats file along with associated mri_file (for voxel sizes) and converts to a measures dictionary with keys:
     ['structure':XX, 'items': [{'name': 'NVoxels', 'description': 'Number of voxels','value':XX, 'units':'unitless'},
                         {'name': 'Volume_mm3', 'description': ''Volume', 'value':XX, 'units':'mm^3'}]]
-    :param fsl_stats_file: path to JSON file
+    :param ants_stats_file: path to ANTS segmentation output file
+    :param mri_file: mri file to extract voxel sizes from
     :return: measures is a list of dictionaries as defined above
     '''
 
-    with open(fsl_stats_file) as json_file:
+    with open(ants_stats_file) as json_file:
         data = json.load(json_file)
 
     measures=[]
