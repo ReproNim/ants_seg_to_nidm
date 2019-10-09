@@ -1,0 +1,357 @@
+@prefix Neuroimaging_Analysis_Software: <http://purl.org/nidash/nidm#NIDM_0000164> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix hasDatumType: <http://uri.interlex.org/ilx_0738262#> .
+@prefix hasLaterality: <http://uri.interlex.org/ilx_0381387#> .
+@prefix hasMeasurementType: <http://uri.interlex.org/ilx_0381388#> .
+@prefix hasUnit: <http://uri.interlex.org/base/ilx_0112181#> .
+@prefix ilk: <http://uri.interlex.org/base/> .
+@prefix isAbout: <http://uri.interlex.org/ilx_0381385#> .
+@prefix measurement_datum: <http://uri.interlex.org/base/ilx_0738269#> .
+@prefix ndar: <https://ndar.nih.gov/api/datadictionary/v2/dataelement/> .
+@prefix nidm: <http://purl.org/nidash/nidm#> .
+@prefix niiri: <http://iri.nidash.org/> .
+@prefix obo: <http://purl.obolibrary.org/obo/> .
+@prefix prov: <http://www.w3.org/ns/prov#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix sio: <http://semanticscience.org/ontology/sio.owl#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+niiri:a56b0f00-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "fourth ventricle"^^xsd:string ;
+    dct:description "fourth ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002422 ;
+    hasLaterality: "None"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:a5712fb6-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "caudate nucleus"^^xsd:string ;
+    dct:description "caudate nucleus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001873 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:a5734a9e-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "amygdala"^^xsd:string ;
+    dct:description "amygdala gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001876 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:a574575e-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "ventral diencephalon gray matter"^^xsd:string ;
+    dct:description "ventral diencephalon gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:b5658256-eae9-11e9-a542-003ee1ce9545 a nidm:ANTSStatsCollection,
+        prov:Entity ;
+    niiri:a56b0f00-eae9-11e9-a542-003ee1ce9545 1.458484e+03 ;
+    niiri:a5712fb6-eae9-11e9-a542-003ee1ce9545 3.778609e+03 ;
+    niiri:a5734a9e-eae9-11e9-a542-003ee1ce9545 1.088609e+03 ;
+    niiri:a574575e-eae9-11e9-a542-003ee1ce9545 5.07002e+03 ;
+    niiri:b56c13fa-eae9-11e9-a542-003ee1ce9545 3.428699e+03 ;
+    niiri:b5723de8-eae9-11e9-a542-003ee1ce9545 1.542547e+03 ;
+    niiri:b572c40c-eae9-11e9-a542-003ee1ce9545 3.301555e+03 ;
+    niiri:b574cdb0-eae9-11e9-a542-003ee1ce9545 1.576172e+01 ;
+    niiri:c5690584-eae9-11e9-a542-003ee1ce9545 3.746035e+03 ;
+    niiri:c56b8fb6-eae9-11e9-a542-003ee1ce9545 1.798517e+04 ;
+    niiri:c56c9604-eae9-11e9-a542-003ee1ce9545 1.130641e+03 ;
+    niiri:c56d987e-eae9-11e9-a542-003ee1ce9545 5.390508e+02 ;
+    niiri:d56808aa-eae9-11e9-a542-003ee1ce9545 1.478449e+04 ;
+    niiri:d56e1d94-eae9-11e9-a542-003ee1ce9545 5.334816e+03 ;
+    niiri:d56f12a8-eae9-11e9-a542-003ee1ce9545 8.641625e+03 ;
+    niiri:d57029d6-eae9-11e9-a542-003ee1ce9545 1.468257e+04 ;
+    niiri:d570ad34-eae9-11e9-a542-003ee1ce9545 7.770527e+03 ;
+    niiri:d5756086-eae9-11e9-a542-003ee1ce9545 2.206641e+01 ;
+    niiri:e56a027c-eae9-11e9-a542-003ee1ce9545 1.68125e+03 ;
+    niiri:e56e8ee6-eae9-11e9-a542-003ee1ce9545 9.457031e+00 ;
+    niiri:e56f94bc-eae9-11e9-a542-003ee1ce9545 2.280195e+02 ;
+    niiri:e573d3b0-eae9-11e9-a542-003ee1ce9545 5.159336e+02 ;
+    niiri:f5663372-eae9-11e9-a542-003ee1ce9545 6.686121e+03 ;
+    niiri:f5677854-eae9-11e9-a542-003ee1ce9545 1.607695e+02 ;
+    niiri:f5688776-eae9-11e9-a542-003ee1ce9545 7.88191e+03 ;
+    niiri:f569839c-eae9-11e9-a542-003ee1ce9545 4.993312e+03 ;
+    niiri:f56a8bac-eae9-11e9-a542-003ee1ce9545 7.176836e+02 ;
+    niiri:f56d169c-eae9-11e9-a542-003ee1ce9545 1.122234e+03 ;
+    niiri:f571b5c6-eae9-11e9-a542-003ee1ce9545 5.046902e+03 ;
+    prov:wasGeneratedBy niiri:d5644dd2-eae9-11e9-a542-003ee1ce9545 .
+
+niiri:b56c13fa-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "hippocampus"^^xsd:string ;
+    dct:description "hippocampus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001954 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:b5723de8-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "pallidum"^^xsd:string ;
+    dct:description "pallidum gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0006514 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:b572c40c-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "hippocampus"^^xsd:string ;
+    dct:description "hippocampus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001954 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:b574cdb0-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "perivascular space"^^xsd:string ;
+    dct:description "perivascular space blood"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0014930 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:c5690584-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "caudate nucleus"^^xsd:string ;
+    dct:description "caudate nucleus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001873 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:c56b8fb6-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "brainstem"^^xsd:string ;
+    dct:description "brainstem gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002298 ;
+    hasLaterality: "None"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:c56c9604-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "amygdala"^^xsd:string ;
+    dct:description "amygdala gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001876 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:c56d987e-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "nucleus accumbens"^^xsd:string ;
+    dct:description "nucleus accumbens gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001882 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d56808aa-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "cerebellum white matter"^^xsd:string ;
+    dct:description "cerebellum white matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002037 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d56e1d94-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "ventral diencephalon gray matter"^^xsd:string ;
+    dct:description "ventral diencephalon gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d56f12a8-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "lateral ventricle"^^xsd:string ;
+    dct:description "lateral ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002285 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d57029d6-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "cerebellum white matter"^^xsd:string ;
+    dct:description "cerebellum white matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002037 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d570ad34-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "thalamus"^^xsd:string ;
+    dct:description "thalamus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001897 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:d5756086-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "optic chiasm"^^xsd:string ;
+    dct:description "optic chiasm white matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0000959 ;
+    hasLaterality: "None"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:e56a027c-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "pallidum"^^xsd:string ;
+    dct:description "pallidum gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0006514 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:e56e8ee6-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "perivascular space"^^xsd:string ;
+    dct:description "perivascular space blood"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0014930 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:e56f94bc-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "inferior horn of the lateral ventricle"^^xsd:string ;
+    dct:description "inferior horn of the lateral ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0006091 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:e573d3b0-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "nucleus accumbens"^^xsd:string ;
+    dct:description "nucleus accumbens gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001882 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f5663372-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "lateral ventricle"^^xsd:string ;
+    dct:description "lateral ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002285 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f5677854-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "inferior horn of the lateral ventricle"^^xsd:string ;
+    dct:description "inferior horn of the lateral ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0006091 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f5688776-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "thalamus"^^xsd:string ;
+    dct:description "thalamus gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001897 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f569839c-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "putamen"^^xsd:string ;
+    dct:description "putamen gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001874 ;
+    hasLaterality: "Left"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f56a8bac-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "third ventricle"^^xsd:string ;
+    dct:description "third ventricle cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0002286 ;
+    hasLaterality: "None"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f56d169c-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "cerebrum cerebral spinal fluid"^^xsd:string ;
+    dct:description "cerebrum cerebral spinal fluid"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001869 ;
+    hasLaterality: "None"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:f571b5c6-eae9-11e9-a542-003ee1ce9545 a measurement_datum:,
+        prov:Entity ;
+    rdfs:label "putamen"^^xsd:string ;
+    dct:description "putamen gray matter"^^xsd:string ;
+    hasUnit: "mm^3"^^xsd:string ;
+    isAbout: obo:UBERON_0001874 ;
+    hasLaterality: "Right"^^xsd:string ;
+    hasMeasurementType: ilk:ilx_0112559 ;
+    hasDatumType: ilk:ilx_0738276 .
+
+niiri:a564c096-eae9-11e9-a542-003ee1ce9545 a prov:Agent,
+        prov:SoftwareAgent ;
+    Neuroimaging_Analysis_Software: "http://stnava.github.io/ANTs/"^^xsd:string .
+
+niiri:d5644dd2-eae9-11e9-a542-003ee1ce9545 a prov:Activity ;
+    dct:description "ANTS segmentation statistics"^^xsd:string ;
+    prov:qualifiedAssociation [ a prov:Association ;
+            prov:agent niiri:a564c096-eae9-11e9-a542-003ee1ce9545 ;
+            prov:hadRole "http://purl.org/nidash/nidm#NIDM_0000164"^^xsd:string ],
+        [ a prov:Association ;
+            prov:agent niiri:d5651bae-eae9-11e9-a542-003ee1ce9545 ;
+            prov:hadRole sio:Subject ] .
+
+niiri:d5651bae-eae9-11e9-a542-003ee1ce9545 a prov:Agent ;
+    ndar:src_subject_id "0050002"^^xsd:string .
+
