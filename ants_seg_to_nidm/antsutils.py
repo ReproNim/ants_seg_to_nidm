@@ -10,6 +10,7 @@ from pathlib import Path
 import rdflib as rl
 from requests import get
 import nibabel as nib
+import pandas as pd
 
 ANTS = namedtuple("ANTS_DKT", ["structure", "hemi", "measure", "unit"])
 cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "ants-cdes.json"
@@ -51,7 +52,7 @@ def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
         measures[-1]['items'].append({
             'name' : 'Volume_mm3',
             'description' : 'Volume',
-            'value' : j.values[1] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+            'value' : j.values[1] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
             'units' : 'mm^3'})
 
 
@@ -68,7 +69,7 @@ def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
         measures[-1]['items'].append({
             'name' : 'Volume_mm3',
             'description' : 'Volume',
-            'value' : j.values[3] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+            'value' : j.values[3] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
             'units' : 'mm^3'})
 
 
@@ -82,7 +83,7 @@ def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
         measures[-1]['items'].append({
                 'name' : 'Volume_mm3',
                 'description' : 'Volume',
-                'value' : j.values[1] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+                'value' : j.values[1] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
                 'units' : 'mm^3'})
 
 
@@ -107,43 +108,6 @@ def loadfreesurferlookuptable(lookup_table):
 
     return lookup_table_dic
 
-def get_segid(filename, structure):
-    """Should return the segmentation label of the ants structure
-
-    :param filename:
-    :param structure:
-    :return:
-    """
-    structure = structure.replace("&", "_and_")
-    filename = str(filename)
-    label = structure
-    if "lh" in filename:
-        hemi = "lh"
-    if "rh" in filename:
-        hemi = "rh"
-    if (
-        "aparc.stats" in filename
-        or "a2005" in filename
-        or "DKT" in filename
-        or "aparc.pial" in filename
-        or "w-g.pct" in filename
-    ):
-        label = f"ctx-{hemi}-{structure}"
-    if "a2009" in filename:
-        label = f"ctx_{hemi}_{structure}"
-    if "BA" in filename:
-        label = structure.split("_exvivo")[0]
-    try:
-        with open(lut_file, "rt") as fp:
-            for line in fp.readlines():
-                vals = line.split()
-                if len(vals) > 2 and vals[1] == label:
-                    return int(vals[0])
-    except UnboundLocalError:
-        print(f"{filename} - {structure}")
-        raise
-    return None
-
 
 def make_label(info):
     label = []
@@ -157,159 +121,6 @@ def make_label(info):
         label = label[1:]
     return " ".join(label)
 
-
-def read_stats(filename, error_on_new_key=True):
-    """Convert stats file to a structure
-    """
-    header = {}
-    tableinfo = {}
-    measures = []
-
-    with open(cde_file, "r") as fp:
-        fs_cde = json.load(fp)
-    with open(filename, "rt") as fp:
-        lines = fp.readlines()
-    updated = False
-    for line in lines:
-        if line == line[0]:
-            continue
-        # parse commented header
-        if line.startswith("#"):
-            fields = line.split()[1:]
-            if len(fields) < 2:
-                continue
-            tag = fields[0]
-            if tag == "TableCol":
-                col_idx = int(fields[1])
-                if col_idx not in tableinfo:
-                    tableinfo[col_idx] = {}
-                tableinfo[col_idx][fields[2]] = " ".join(fields[3:])
-                if tableinfo[col_idx][fields[2]] == "StructName":
-                    struct_idx = col_idx
-            elif tag == "Measure":
-                fields = " ".join(fields).replace("CortexVol ", "CortexVol, ").split()
-                fields = " ".join(fields[1:]).split(", ")
-                hemi = None
-                if fields[0].startswith("lh"):
-                    hemi = "Left"
-                if fields[0].startswith("rh"):
-                    hemi = "Right"
-                fskey = FS(
-                    structure=fields[0], hemi=hemi, measure=fields[1], unit=fields[4]
-                )
-                if str(fskey) not in fs_cde:
-                    fs_cde["count"] += 1
-                    extra_info = dict(
-                        id=f"{fs_cde['count']:0>6d}",
-                        structure_id=None,
-                        label=make_label(dict(measure=fields[2], unit=fields[4])),
-                        description=" ".join((fields[2], "(" + fields[4] + ")")),
-                        key_source="Header",
-                    )
-                    fs_cde[str(fskey)] = extra_info
-                    updated = True
-                    if error_on_new_key:
-                        raise ValueError(
-                            f"Your file ({filename}) is adding a new key: {fskey}."
-                        )
-                measures.append((f'{fs_cde[str(fskey)]["id"]}', fields[3]))
-            elif tag == "ColHeaders":
-                if len(fields) != len(tableinfo):
-                    for idx, fieldname in enumerate(fields[1:]):
-                        if idx + 1 in tableinfo:
-                            continue
-                        tableinfo[idx + 1] = {
-                            "ColHeader": fieldname,
-                            "Units": "unknown",
-                            "FieldName": fieldname,
-                        }
-                else:
-                    continue
-            else:
-                header[tag] = " ".join(fields[1:])
-        else:
-            # read values
-            row = line.split()
-            segid = None
-            hemi = None
-            if "lh." in str(filename) or "Left" in row[struct_idx - 1]:
-                hemi = "Left"
-                segid = get_segid(filename, row[struct_idx - 1])
-            if "rh." in str(filename) or "Right" in row[struct_idx - 1]:
-                hemi = "Right"
-                segid = get_segid(filename, row[struct_idx - 1])
-            if row[struct_idx - 1].lower() == "unknown":
-                hemi = None
-            for idx, value in enumerate(row):
-                if idx + 1 == struct_idx or tableinfo[idx + 1]["ColHeader"] == "Index":
-                    continue
-                if tableinfo[idx + 1]["ColHeader"] == "SegId":
-                    segid = int(value)
-                    continue
-                fskey = FS(
-                    structure=row[struct_idx - 1],
-                    hemi=hemi,
-                    measure=tableinfo[idx + 1]["ColHeader"],
-                    unit=tableinfo[idx + 1]["Units"],
-                )
-                if str(fskey) not in fs_cde:
-                    fs_cde["count"] += 1
-                    extra_info = dict(
-                        id=f"{fs_cde['count']:0>6d}",
-                        structure_id=segid,
-                        label=make_label(
-                            dict(
-                                structure=row[struct_idx - 1],
-                                hemi=hemi or None,
-                                measure=tableinfo[idx + 1]["ColHeader"],
-                                unit=tableinfo[idx + 1]["Units"],
-                            )
-                        ),
-                        description=" ".join(
-                            [
-                                val
-                                for val in [
-                                    hemi
-                                    if hemi and hemi not in row[struct_idx - 1]
-                                    else "",
-                                    row[struct_idx - 1],
-                                    tableinfo[idx + 1]["FieldName"],
-                                    "(" + tableinfo[idx + 1]["Units"] + ")",
-                                ]
-                                if val
-                            ]
-                        ),
-                        key_source="Table",
-                    )
-                    fs_cde[str(fskey)] = extra_info
-                    updated = True
-                    if error_on_new_key:
-                        raise ValueError(
-                            f"Your file ({filename}) is adding a new key: {fskey}."
-                        )
-                measures.append((f'{fs_cde[str(fskey)]["id"]}', value))
-    if updated:
-        with open(cde_file, "w") as fp:
-            json.dump(fs_cde, fp, indent=2)
-    return measures, header
-
-
-def collate_fs_items(freesurfer_stats_dir, error_on_new_key=True):
-    """Collect values from all stats files
-
-    :param freesurfer_stats_dir: string - Freesurfer stats directory
-    :param error_on_new_key: bool - Raise error if a new key is found
-    :return: list - A list of tuples (values, header information)
-    """
-    result = []
-    for fl in Path(freesurfer_stats_dir).glob("*.stats"):
-        if "curv" in str(fl):
-            print(f"skipping {fl}")
-            continue
-        print(f"reading {fl}")
-        m, h = read_stats(fl, error_on_new_key=error_on_new_key)
-        result.append((fl, m, h))
-    return result
 
 
 def get_normative_measure(measure):
