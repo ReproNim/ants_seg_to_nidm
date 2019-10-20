@@ -9,15 +9,106 @@ from collections import namedtuple
 from pathlib import Path
 import rdflib as rl
 from requests import get
+import nibabel as nib
 
-FS = namedtuple("FS", ["structure", "hemi", "measure", "unit"])
-cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "freesurfer-cdes.json"
-map_file = Path(os.path.dirname(__file__)) / "mapping_data" / "freesurfermap.json"
+ANTS = namedtuple("ANTS_DKT", ["structure", "hemi", "measure", "unit"])
+cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "ants-cdes.json"
+map_file = Path(os.path.dirname(__file__)) / "mapping_data" / "antsmap.json"
 lut_file = Path(os.path.dirname(__file__)) / "mapping_data" / "FreeSurferColorLUT.txt"
 
+def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
+    """
+    Reads in an ANTS stats file along with associated mri_file (for voxel sizes) and converts to a measures dictionary with keys:
+    ['structure':XX, 'items': [{'name': 'NVoxels', 'description': 'Number of voxels','value':XX, 'units':'unitless'},
+                        {'name': 'Volume_mm3', 'description': ''Volume', 'value':XX, 'units':'mm^3'}]]
+    :param ants_stats_file: path to ANTS segmentation output file named "antslabelstats"
+    :param ants_brainvols_file: path to ANTS segmentation output for Bvol, Gvol, Wvol, and ThicknessSum (called antsbrainvols"
+    :param mri_file: mri file to extract voxel sizes from
+    :param freesurfer_lookup_table: Lookup table used to map 1st column of ants_stats_file label numbers to structure names
+    :return: measures is a list of dictionaries as defined above
+    """
+
+    # fs_lookup_table = loadfreesurferlookuptable(freesurfer_lookup_table)
+
+    # open stats file, brain vols file as pandas dataframes
+    ants_stats = pd.read_csv(ants_stats_file)
+    brain_vols = pd.read_csv(ants_brainvols_file)
+
+    # load mri_file and extract voxel sizes
+    img = nib.load(mri_file)
+    vox_size = img.header.get_zooms()
+
+
+    measures=[]
+
+    # iterate over columns in brain vols
+    for i, j in brain_vols.iterrows():
+
+        # just do this for BVOL, GVol, and WVol columns
+
+        measures.append({'structure': 3, 'items': []})
+        # add to measures list
+        measures[-1]['items'].append({
+            'name' : 'Volume_mm3',
+            'description' : 'Volume',
+            'value' : j.values[1] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+            'units' : 'mm^3'})
+
+
+        measures.append({'structure': 6, 'items': []})
+        # add to measures list
+        measures[-1]['items'].append({
+            'name' : 'Volume_mm3',
+            'description' : 'Volume',
+            'value' : j.values[2] * vox_size[1],
+            'units' : 'mm^3'})
+
+        measures.append({'structure': 2763, 'items': []})
+        # add to measures list
+        measures[-1]['items'].append({
+            'name' : 'Volume_mm3',
+            'description' : 'Volume',
+            'value' : j.values[3] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+            'units' : 'mm^3'})
+
+
+    # iterate over columns in brain vols
+    for i, j in ants_stats.iterrows():
+
+        # map all labels that existin in freesurfer lookup tables
+        # if str(int(j.values[0])) in fs_lookup_table.keys():
+        measures.append({'structure': str(int(j.values[0])), 'items': []})
+        # add to measures list
+        measures[-1]['items'].append({
+                'name' : 'Volume_mm3',
+                'description' : 'Volume',
+                'value' : j.values[1] * (vox_size[1]*vol_size[2]*vox_size[3]),  # assumes isotropic voxels
+                'units' : 'mm^3'})
+
+
+    return measures
+
+
+
+
+def loadfreesurferlookuptable(lookup_table):
+    lookup_table_dic={}
+    with open(lookup_table) as fp:
+        line=fp.readline()
+        cnt = 1
+        while line:
+            line_split = line.split()
+            if len(line_split) < 2:
+                line = fp.readline()
+            else:
+                lookup_table_dic[line_split[0]] = line_split[1]
+                line = fp.readline()
+
+
+    return lookup_table_dic
 
 def get_segid(filename, structure):
-    """Should return the segmentation label of the freesurfer structure
+    """Should return the segmentation label of the ants structure
 
     :param filename:
     :param structure:
