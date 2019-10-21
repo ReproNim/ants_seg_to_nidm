@@ -8,9 +8,7 @@
 # ## ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ### ##
 from __future__ import absolute_import
 
-__version__ = '0.0.1'
+__version__ = "0.0.1"
 
 # do imports of all of the functions that should be available here
-from .ants_seg_to_nidm import (
-                         read_ants_stats,
-                         add_seg_data)
+from .ants_seg_to_nidm import add_seg_data

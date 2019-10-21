@@ -10,14 +10,48 @@ from pathlib import Path
 import rdflib as rl
 from requests import get
 import nibabel as nib
+import numpy as np
 import pandas as pd
 
-ANTS = namedtuple("ANTS_DKT", ["structure", "hemi", "measure", "unit"])
+ANTSDKT = namedtuple("ANTSDKT", ["structure", "hemi", "measure", "unit"])
 cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "ants-cdes.json"
 map_file = Path(os.path.dirname(__file__)) / "mapping_data" / "antsmap.json"
 lut_file = Path(os.path.dirname(__file__)) / "mapping_data" / "FreeSurferColorLUT.txt"
 
-def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
+
+def get_id_to_struct(id):
+    with open(lut_file, "r") as fp:
+        for line in fp.readlines():
+            if line.startswith(str(id)):
+                return line.split()[1]
+    if id == 91:
+        return "Left basal forebrain"
+    if id == 92:
+        return "Right basal forebrain"
+    if id == 630:
+        return "Cerebellar vermal lobules I - V"
+    if id == 631:
+        return "Cerebellar vermal lobules VI - VII"
+    if id == 632:
+        return "Cerebellar vermal lobules VIII - X"
+    return None
+
+
+def get_details(key, structure):
+    hemi = None
+    if "Left" in structure or "lh" in structure:
+        hemi = "Left"
+    if "Right" in structure or "rh" in structure:
+        hemi = "Right"
+    if "Voxels" in key:
+        unit = "voxel"
+    else:
+        unit = "mm"
+    measure = key
+    return hemi, measure, unit
+
+
+def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=True):
     """
     Reads in an ANTS stats file along with associated mri_file (for voxel sizes) and converts to a measures dictionary with keys:
     ['structure':XX, 'items': [{'name': 'NVoxels', 'description': 'Number of voxels','value':XX, 'units':'unitless'},
@@ -37,235 +71,116 @@ def read_ants_stats(ants_stats_file,ants_brainvols_file,mri_file):
 
     # load mri_file and extract voxel sizes
     img = nib.load(mri_file)
-    vox_size = img.header.get_zooms()
+    vox_size = np.product(list(img.header.get_zooms()))
 
+    with open(cde_file, "r") as fp:
+        ants_cde = json.load(fp)
 
-    measures=[]
+    measures = []
+    changed = False
+    # iterate over columns in brain vols
+    for key, j in brain_vols.T.iterrows():
+        value = j.values[0]
+        voxkey = ANTSDKT(
+            structure=key if "vol" in key.lower() else "Brain",
+            hemi=None,
+            measure="NVoxels" if "vol" in key.lower() else key,
+            unit="voxel"
+            if "vol" in key.lower()
+            else "mm"
+            if "Thickness" in key
+            else None,
+        )
+        if str(voxkey) not in ants_cde:
+            ants_cde["count"] += 1
+            ants_cde[str(voxkey)] = {
+                "id": f"{ants_cde['count']:0>6d}",
+                "label": f"{key} ({voxkey.unit})",
+            }
+            if force_error:
+                raise ValueError(f"Key {voxkey} not found in ANTS data elements file")
+            changed = True
+        if "vol" in key.lower():
+            measures.append((f'{ants_cde[str(voxkey)]["id"]}', str(int(value))))
+        else:
+            measures.append((f'{ants_cde[str(voxkey)]["id"]}', str(value)))
+
+        if "vol" in key.lower():
+            volkey = ANTSDKT(
+                structure=voxkey.structure, hemi=None, measure="Volume", unit="mm^3"
+            )
+            if str(volkey) not in ants_cde:
+                ants_cde["count"] += 1
+                ants_cde[str(volkey)] = {
+                    "id": f"{ants_cde['count']:0>6d}",
+                    "label": f"{key} ({volkey.unit})",
+                }
+                if force_error:
+                    raise ValueError(
+                        f"Key {volkey} not found in ANTS data elements file"
+                    )
+                changed = True
+            measures.append((f'{ants_cde[str(volkey)]["id"]}', str(value * vox_size)))
 
     # iterate over columns in brain vols
-    for i, j in brain_vols.iterrows():
+    for row in ants_stats.iterrows():
+        structure = None
+        for key, val in row[1].items():
+            if key == "Label":
+                segid = int(val)
+                structure = get_id_to_struct(segid)
+                if structure is None:
+                    raise ValueError(f"{int(val):d} did not return any structure")
+                continue
+            hemi, measure, unit = get_details(key, structure)
+            key_tuple = ANTSDKT(
+                structure=structure, hemi=hemi, measure=measure, unit=unit
+            )
+            label = f"{structure} {measure} ({unit})"
+            if str(key_tuple) not in ants_cde:
+                ants_cde["count"] += 1
+                ants_cde[str(key_tuple)] = {
+                    "id": f"{ants_cde['count']:0>6d}",
+                    "structure_id": segid,
+                    "label": label,
+                }
+                if force_error:
+                    raise ValueError(
+                        f"Key {key_tuple} not found in ANTS data elements file"
+                    )
+                changed = True
+            if "VolumeInVoxels" not in key:
+                continue
+            measures.append((f'{ants_cde[str(key_tuple)]["id"]}', str(val)))
 
-        # just do this for BVOL, GVol, and WVol columns
+            if "VolumeInVoxels" in key:
+                measure = "Volume"
+                unit = "mm^3"
+                key_tuple = ANTSDKT(
+                    structure=structure, hemi=hemi, measure=measure, unit=unit
+                )
+                label = f"{structure} {measure} ({unit})"
+                if str(key_tuple) not in ants_cde:
+                    ants_cde["count"] += 1
+                    ants_cde[str(key_tuple)] = {
+                        "id": f"{ants_cde['count']:0>6d}",
+                        "structure_id": segid,
+                        "label": label,
+                    }
+                    if force_error:
+                        raise ValueError(
+                            f"Key {key_tuple} not found in ANTS data elements file"
+                        )
+                    changed = True
+                measures.append(
+                    (f'{ants_cde[str(key_tuple)]["id"]}', str(val * vox_size))
+                )
 
-        measures.append({'structure': 3, 'items': []})
-        # add to measures list
-        measures[-1]['items'].append({
-            'name' : 'Volume_mm3',
-            'description' : 'Volume',
-            'value' : j.values[1] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
-            'units' : 'mm^3'})
+    if changed:
+        with open(cde_file, "w") as fp:
+            json.dump(ants_cde, fp, indent=2)
 
-
-        measures.append({'structure': 6, 'items': []})
-        # add to measures list
-        measures[-1]['items'].append({
-            'name' : 'Volume_mm3',
-            'description' : 'Volume',
-            'value' : j.values[2] * vox_size[1],
-            'units' : 'mm^3'})
-
-        measures.append({'structure': 2763, 'items': []})
-        # add to measures list
-        measures[-1]['items'].append({
-            'name' : 'Volume_mm3',
-            'description' : 'Volume',
-            'value' : j.values[3] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
-            'units' : 'mm^3'})
-
-
-    # iterate over columns in brain vols
-    for i, j in ants_stats.iterrows():
-
-        # map all labels that existin in freesurfer lookup tables
-        # if str(int(j.values[0])) in fs_lookup_table.keys():
-        measures.append({'structure': str(int(j.values[0])), 'items': []})
-        # add to measures list
-        measures[-1]['items'].append({
-                'name' : 'Volume_mm3',
-                'description' : 'Volume',
-                'value' : j.values[1] * (vox_size[1]*vox_size[2]*vox_size[3]),  # assumes isotropic voxels
-                'units' : 'mm^3'})
-
-
-    return measures
-
-
-
-
-def loadfreesurferlookuptable(lookup_table):
-    lookup_table_dic={}
-    with open(lookup_table) as fp:
-        line=fp.readline()
-        cnt = 1
-        while line:
-            line_split = line.split()
-            if len(line_split) < 2:
-                line = fp.readline()
-            else:
-                lookup_table_dic[line_split[0]] = line_split[1]
-                line = fp.readline()
-
-
-    return lookup_table_dic
-
-
-def make_label(info):
-    label = []
-    for key in ["hemi", "structure", "measure"]:
-        val = info.get(key, None)
-        if val:
-            label.append(val)
-    if not ("unitless" in info["unit"] or "NA" in info["unit"]):
-        label.append(f"({info['unit']})")
-    if len(label) > 1 and label[0] in label[1]:
-        label = label[1:]
-    return " ".join(label)
-
-
-
-def get_normative_measure(measure):
-    normative = {"measureOf": None, "datumType": None, "hasUnit": None}
-    fs_uri = "fs:"
-    if "Ratio" in measure[1]:
-        normative["measureOf"] = fs_uri + measure[0]
-        normative["datumType"] = "http://purl.obolibrary.org/obo/STATO_0000184"
-    elif "SNR" in measure[1]:
-        normative["measureOf"] = fs_uri + measure[1]
-        normative["datumType"] = "http://purl.obolibrary.org/obo/STATO_0000184"
-    elif "Vol" in measure[0] or "Vol" in measure[1] or "Volume" in measure[1]:
-        normative["measureOf"] = "http://uri.interlex.org/base/ilx_0112559"
-        normative["datumType"] = "http://uri.interlex.org/base/ilx_0738276"
-        normative["hasUnit"] = measure[2]
-    elif "Number" in measure[1] or "number" in measure[1]:
-        normative["datumType"] = "http://uri.interlex.org/base/ilx_0102597"
-        if "defect holes" in measure[1]:
-            normative["measureOf"] = "http://uri.interlex.org/base/ilx_0112559"
-            normative["hasUnit"] = fs_uri + "defect-hole"
-        elif "oxel" in measure[1]:
-            normative["measureOf"] = "http://uri.interlex.org/base/ilx_0112559"
-            normative["hasUnit"] = "voxel"
-        elif "ertices" in measure[1]:
-            normative["measureOf"] = "http://uri.interlex.org/base/ilx_0112559"
-            normative["hasUnit"] = "vertex"
-        else:
-            raise ValueError(f"Could not determine units for {measure}")
-    elif "Intensity" in measure[1] or "Itensity" in measure[1]:
-        normative["measureOf"] = "http://uri.interlex.org/base/ilx_0738276"
-        if "Mean" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738264"
-        elif "StdDev" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738265"
-        elif "Min" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738266"
-        elif "Max" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738267"
-        elif "Range" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738268"
-        else:
-            raise ValueError(f"Could not parse {measure}")
-        normative["hasUnit"] = fs_uri + measure[2]
-    elif "Thick" in measure[0]:
-        normative["measureOf"] = "http://uri.interlex.org/base/ilx_0738276"
-        if "Mean" in measure[0] or "Avg" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738264"
-        elif "Std" in measure[0]:
-            normative["datumType"] = "http://uri.interlex.org/base/ilx_0738265"
-        else:
-            raise ValueError(f"Could not parse {measure}")
-        normative["hasUnit"] = measure[2]
-    elif "Area" in measure[0]:
-        normative["measureOf"] = "http://purl.obolibrary.org/obo/PATO_0001323"
-        normative["datumType"] = "http://uri.interlex.org/base/ilx_0738276"
-        normative["hasUnit"] = measure[2]
-    elif "Index" in measure[1]:
-        if "Curv" in measure[0]:
-            normative["measureOf"] = "http://purl.obolibrary.org/obo/PATO_0001591"
-            normative["datumType"] = "http://purl.obolibrary.org/obo/NCIT_C25390"
-        elif "Fold" in measure[0]:
-            normative["measureOf"] = fs_uri + "folding"
-            normative["datumType"] = "http://purl.obolibrary.org/obo/NCIT_C25390"
-        else:
-            raise ValueError(f"Unknown Index type {measure}")
-    elif "Curv" in measure[0]:
-        normative["measureOf"] = "http://purl.obolibrary.org/obo/PATO_0001591"
-        normative["datumType"] = "http://uri.interlex.org/base/ilx_0738276"
-        normative["hasUnit"] = measure[2]
-    elif "SegId" in measure[0]:
-        normative["measureOf"] = "http://uri.interlex.org/base/ilx_0100965"
-        normative["datumType"] = "http://uri.interlex.org/base/ilx_0738276"
-    else:
-        raise ValueError(f"Could not parse {measure}")
-    return {k: v for k, v in normative.items() if v is not None}
-
-
-def get_normative_structures(structure):
-    """Returns a structure from the ReproNimCDE if available
-    """
-    import pandas as pd
-    import numpy as np
-
-    normative = {"isAbout": "<UNKNOWN>", "hasLaterality": None}
-    location = Path(os.path.dirname(__file__))
-    df = pd.read_excel(location / "mapping_data/ReproNimCDEs.xlsx", header=[0, 1])
-    labels = df[("Atlas Segmentation Label", "Unnamed: 6_level_1")].str
-    start_indices = labels.find(structure).values
-    indices = np.nonzero(start_indices > -1)
-    indices = indices[0]
-    if len(indices):
-        idx = indices[start_indices[indices].argsort()[0]]
-        uberon = df[("Structure", "Preferred")].iloc[idx]
-        if str(uberon) != "nan":
-            uberon = uberon.replace("UBERON:", "http://purl.obolibrary.org/obo/UBERON_")
-            normative["isAbout"] = uberon
-        laterality = df[("Laterality", "ILX:0106135")].iloc[idx]
-        normative["hasLaterality"] = laterality
-    else:
-        normative["isAbout"] = f"<UNKNOWN - {structure}>"
-    if normative["hasLaterality"] is None:
-        if "lh" in structure or "Left" in structure:
-            normative["hasLaterality"] = "Left"
-        elif "rh" in structure or "Right" in structure:
-            normative["hasLaterality"] = "Right"
-        else:
-            normative["hasLaterality"] = f"<UNKNOWN - {structure}>"
-    if normative["hasLaterality"] == "None":
-        normative["hasLaterality"] = None
-    return {k: v for k, v in normative.items() if v is not None}
-
-
-def get_niiri_index(fs_map, structure, name, units):
-    """Generates index for retrieve consistent niiri
-
-    >>> get_niiri_index(fs_map, 'lhCortex', 'lhCortexVol', 'mm^3')
-    "(('datumType', 'http://uri.interlex.org/base/ilx_0738276'), ('hasLaterality', 'Left'), ('hasUnit', 'mm^3'), ('isAbout', 'http://purl.obolibrary.org/obo/UBERON_0000956'), ('measureOf', 'http://uri.interlex.org/base/ilx_0112559'))"
-    """
-    meta_datum = fs_map["Structures"][structure].copy()
-    meta_datum.update(**fs_map["Measures"][str((name, units))])
-    niiri_key = str(tuple(sorted(meta_datum.items())))
-    return niiri_key
-
-
-def get_label(url):
-    if "fswiki" in url:
-        return url.split("/")[-1]
-    g = rl.Graph()
-    res = get(url, headers={"Accept": "application/rdf+xml"})
-    g.parse(data=res.text, format="application/rdf+xml")
-    if "interlex" in url:
-        url = url.replace("/base/ilx", "/base/ontologies/ilx")
-    query = "SELECT ?label WHERE { <%s> rdfs:label ?label . }" % url
-    query2 = (
-        "SELECT ?label WHERE { <%s> <http://purl.obolibrary.org/obo/IAO_0000136>/rdfs:label ?label . }"
-        % url
-    )
-    try:
-        label = str(g.query(query).bindings.pop()["label"])
-    except IndexError:
-        try:
-            label = str(g.query(query2).bindings.pop()["label"])
-        except IndexError:
-            label = url
-    return label
+    return measures, ants_cde
 
 
 def hemiless(key):
@@ -281,99 +196,50 @@ def hemiless(key):
     )
 
 
-def create_fs_mapper():
+def create_ants_mapper():
     """Create FreeSurfer to ReproNim mapping information
     """
 
     with open(map_file, "r") as fp:
-        fs_map = json.load(fp)
+        ants_map = json.load(fp)
 
     with open(cde_file, "r") as fp:
-        fs_cde = json.load(fp)
+        ants_cde = json.load(fp)
 
-    mmap = fs_map["Measures"]
-    if "('SegId', 'NA')" in mmap:
-        del mmap["('SegId', 'NA')"]
-
-    for key in fs_cde:
+    s = ants_map["Structures"]
+    m = ants_map["Measures"]
+    for key in ants_cde:
         if key == "count":
             continue
         key_tuple = eval(key)
-        if key_tuple.measure in mmap:
-            continue
-        # Deal with measures
-        old_key = str((key_tuple.measure, key_tuple.unit))
-        if old_key in mmap:
-            value = mmap[old_key]
-            value["fsunit"] = key_tuple.unit
-            del mmap[old_key]
-            mmap[key_tuple.measure] = value
-        if key_tuple.measure not in mmap:
-            mmap[key_tuple.measure] = get_normative_measure(
-                (key_tuple.measure, fs_cde[key]["description"], key_tuple.unit)
-            )
-            mmap[key_tuple.measure]["fsunit"] = key_tuple.unit
-
-    for key in mmap:
-        for subkey, value in mmap[key].items():
-            if value.startswith("https://surfer.nmr.mgh.harvard.edu/fswiki/terms/"):
-                mmap[key][subkey] = mmap[key][subkey].replace(
-                    "https://surfer.nmr.mgh.harvard.edu/fswiki/terms/", "fs:"
-                )
-
-    smap = fs_map["Structures"]
-    for key in fs_cde:
-        if key == "count":
-            continue
-        key_tuple = eval(key)
-        # Deal with structures
-        hkey = hemiless(key_tuple.structure)
-        # take care of older keys
-        if key_tuple.structure in smap and "fskey" not in smap[key_tuple.structure]:
-            value = smap[key_tuple.structure]
-            del smap[key_tuple.structure]
-            if hkey not in smap:
-                smap[hkey] = dict(
-                    isAbout=value["isAbout"]
-                    if value["isAbout"] and "UNKNOWN" not in value["isAbout"]
-                    else None,
-                    fskey=[key_tuple.structure],
-                )
-            else:
-                if "fskey" not in smap[hkey]:
-                    smap[hkey]["fskey"] = [hkey]
-                if "hasLaterality" in smap[hkey]:
-                    del smap[hkey]["hasLaterality"]
-                if "UNKNOWN" not in value["isAbout"]:
-                    if smap[hkey]["isAbout"] is not None:
-                        assert smap[hkey]["isAbout"] == value["isAbout"]
-                    smap[hkey]["isAbout"] = value["isAbout"]
-                if key_tuple.structure not in smap[hkey]["fskey"]:
-                    smap[hkey]["fskey"].append(key_tuple.structure)
-        # add new keys
-        if hkey in smap:
-            if smap[hkey]["isAbout"] is not None and (
-                "UNKNOWN" not in smap[hkey]["isAbout"]
-                and "CUSTOM" not in smap[hkey]["isAbout"]
-            ):
-                fs_cde[key]["isAbout"] = smap[hkey]["isAbout"]
-            if key_tuple.structure not in smap[hkey]["fskey"]:
-                smap[hkey]["fskey"].append(key_tuple.structure)
+        sk = key_tuple.structure
+        mk = key_tuple.measure
+        hk = hemiless(sk)
+        if hk in s:
+            if sk not in s[hk]["antskey"]:
+                s[hk]["antskey"].append(sk)
         else:
-            smap[hkey] = dict(isAbout=None, fskey=[])
+            s[hk] = dict(isAbout=None, antskey=[sk])
+        if mk not in m:
+            m[mk] = dict(measureOf=None, datumType=None, hasUnit=key_tuple.unit)
 
-        if mmap[key_tuple.measure]["measureOf"] is not None:
-            fs_cde[key].update(**mmap[key_tuple.measure])
+        if s[hk]["isAbout"] is not None and (
+            "UNKNOWN" not in s[hk]["isAbout"] and "CUSTOM" not in s[hk]["isAbout"]
+        ):
+            ants_cde[key]["isAbout"] = s[hkey]["isAbout"]
+
+        if m[key_tuple.measure]["measureOf"] is not None:
+            ants_cde[key].update(**m[key_tuple.measure])
 
     with open(map_file, "w") as fp:
-        json.dump(fs_map, fp, sort_keys=True, indent=2)
+        json.dump(ants_map, fp, sort_keys=True, indent=2)
         fp.write("\n")
 
     with open(cde_file, "w") as fp:
-        json.dump(fs_cde, fp, indent=2)
+        json.dump(ants_cde, fp, indent=2)
         fp.write("\n")
 
-    return fs_map, fs_cde
+    return ants_map, ants_cde
 
 
 def create_cde_graph(restrict_to=None):
@@ -382,17 +248,17 @@ def create_cde_graph(restrict_to=None):
     Any CDE that has a mapping will be mapped
     """
     with open(cde_file, "r") as fp:
-        fs_cde = json.load(fp)
+        ants_cde = json.load(fp)
     from nidm.core import Constants
 
-    fs = Constants.FREESURFER
+    ants = Constants.ANTS
     nidm = Constants.NIDM
 
     g = rl.Graph()
-    g.bind("fs", fs)
+    g.bind("ants", ants)
     g.bind("nidm", nidm)
 
-    for key, value in fs_cde.items():
+    for key, value in ants_cde.items():
         if key == "count":
             continue
         if restrict_to is not None:
@@ -400,28 +266,26 @@ def create_cde_graph(restrict_to=None):
                 continue
         for subkey, item in value.items():
             if subkey == "id":
-                fsid = "fs_" + item
-                g.add((fs[fsid], rl.RDF.type, fs["DataElement"]))
+                antsid = "ants_" + item
+                g.add((ants[antsid], rl.RDF.type, ants["DataElement"]))
                 continue
             if item is None or "unknown" in str(item):
                 continue
-            if isinstance(item, str) and item.startswith("fs:"):
-                item = fs[item.replace("fs:", "")]
             if subkey in ["isAbout", "datumType", "measureOf"]:
-                g.add((fs[fsid], nidm[subkey], rl.URIRef(item)))
+                g.add((ants[antsid], nidm[subkey], rl.URIRef(item)))
             else:
                 if isinstance(item, rl.URIRef):
-                    g.add((fs[fsid], fs[subkey], item))
+                    g.add((ants[antsid], ants[subkey], item))
                 else:
-                    g.add((fs[fsid], fs[subkey], rl.Literal(item)))
+                    g.add((ants[antsid], ants[subkey], rl.Literal(item)))
         key_tuple = eval(key)
         for subkey, item in key_tuple._asdict().items():
             if item is None:
                 continue
             if subkey == "hemi":
-                g.add((fs[fsid], nidm["hasLaterality"], rl.Literal(item)))
+                g.add((ants[antsid], nidm["hasLaterality"], rl.Literal(item)))
             else:
-                g.add((fs[fsid], fs[subkey], rl.Literal(item)))
+                g.add((ants[antsid], ants[subkey], rl.Literal(item)))
     return g
 
 
@@ -434,7 +298,7 @@ def convert_stats_to_nidm(stats):
     from nidm.experiment.Core import getUUID
     import prov
 
-    fs = prov.model.Namespace("fs", str(Constants.FREESURFER))
+    ants = prov.model.Namespace("ants", str(Constants.ANTS))
     niiri = prov.model.Namespace("niiri", str(Constants.NIIRI))
     nidm = prov.model.Namespace("nidm", "http://purl.org/nidash/nidm#")
     doc = prov.model.ProvDocument()
@@ -442,7 +306,7 @@ def convert_stats_to_nidm(stats):
     e.add_asserted_type(nidm["FSStatsCollection"])
     e.add_attributes(
         {
-            fs["fs_" + val[0]]: prov.model.Literal(
+            ants["ants_" + val[0]]: prov.model.Literal(
                 val[1],
                 datatype=prov.model.XSD["float"]
                 if "." in val[1]
