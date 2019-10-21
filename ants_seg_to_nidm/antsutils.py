@@ -45,9 +45,12 @@ def get_details(key, structure):
         hemi = "Right"
     if "Voxels" in key:
         unit = "voxel"
+    elif "Area" in key:
+        unit = "mm^2"
     else:
         unit = "mm"
     measure = key
+    print(key, unit)
     return hemi, measure, unit
 
 
@@ -180,7 +183,7 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
         with open(cde_file, "w") as fp:
             json.dump(ants_cde, fp, indent=2)
 
-    return measures, ants_cde
+    return measures
 
 
 def hemiless(key):
@@ -228,7 +231,7 @@ def create_ants_mapper():
         if s[hk]["isAbout"] is not None and (
             "UNKNOWN" not in s[hk]["isAbout"] and "CUSTOM" not in s[hk]["isAbout"]
         ):
-            ants_cde[key]["isAbout"] = s[hkey]["isAbout"]
+            ants_cde[key]["isAbout"] = s[hk]["isAbout"]
 
         if m[key_tuple.measure]["measureOf"] is not None:
             ants_cde[key].update(**m[key_tuple.measure])
@@ -259,6 +262,8 @@ def create_cde_graph(restrict_to=None):
     g = rl.Graph()
     g.bind("ants", ants)
     g.bind("nidm", nidm)
+    g.bind("uberon", "http://purl.obolibrary.org/obo/UBERON_")
+    g.bind("ilx", "http://uri.interlex.org/base/ilx_")
 
     for key, value in ants_cde.items():
         if key == "count":
@@ -275,6 +280,8 @@ def create_cde_graph(restrict_to=None):
                 continue
             if subkey in ["isAbout", "datumType", "measureOf"]:
                 g.add((ants[antsid], nidm[subkey], rl.URIRef(item)))
+            elif subkey in ["hasUnit"]:
+                g.add((ants[antsid], nidm[subkey], rl.Literal(item)))
             else:
                 if isinstance(item, rl.URIRef):
                     g.add((ants[antsid], ants[subkey], item))
@@ -305,7 +312,7 @@ def convert_stats_to_nidm(stats):
     nidm = prov.model.Namespace("nidm", "http://purl.org/nidash/nidm#")
     doc = prov.model.ProvDocument()
     e = doc.entity(identifier=niiri[getUUID()])
-    e.add_asserted_type(nidm["FSStatsCollection"])
+    e.add_asserted_type(nidm["ANTSStatsCollection"])
     e.add_attributes(
         {
             ants["ants_" + val[0]]: prov.model.Literal(

@@ -78,7 +78,7 @@
     "NVoxels": {
       "datumType": "http://uri.interlex.org/base/ilx_0102597",
       "hasUnit": "voxel",
-      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559"
     },
     "Orientation": {
       "datumType": null,
@@ -93,7 +93,7 @@
     "SurfaceAreaInMillimetersSquared": {
       "datumType": "http://uri.interlex.org/base/ilx_0738276",
       "hasUnit": "mm^2",
-      "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323",
+      "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
     },
     "ThicknessSum": {
       "datumType": null,
@@ -103,12 +103,12 @@
     "Volume": {
       "datumType": "http://uri.interlex.org/base/ilx_0738276",
       "hasUnit": "mm^3",
-      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559"
     },
     "VolumeInVoxels": {
       "datumType": "http://uri.interlex.org/base/ilx_0102597",
       "hasUnit": "voxel",
-      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559"
     },
     "WeightedCentroid_x": {
       "datumType": null,
