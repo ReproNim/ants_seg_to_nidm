@@ -43,14 +43,11 @@ def get_details(key, structure):
         hemi = "Left"
     if "Right" in structure or "rh" in structure:
         hemi = "Right"
-    if "Voxels" in key:
-        unit = "voxel"
-    elif "Area" in key:
+    if "Area" in key:
         unit = "mm^2"
     else:
-        unit = "mm"
+        unit = "voxel"
     measure = key
-    print(key, unit)
     return hemi, measure, unit
 
 

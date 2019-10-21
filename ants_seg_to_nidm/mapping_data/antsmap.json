@@ -2,77 +2,77 @@
   "Measures": {
     "AxesLength_x": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "AxesLength_y": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "AxesLength_z": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxLower_x": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxLower_y": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxLower_z": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxUpper_x": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxUpper_y": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "BoundingBoxUpper_z": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "Centroid_x": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "Centroid_y": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "Centroid_z": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "Eccentricity": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "Elongation": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "IntegratedIntensity": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "NVoxels": {
@@ -82,7 +82,7 @@
     },
     "Orientation": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "PearsonCorrelation": {
@@ -112,17 +112,17 @@
     },
     "WeightedCentroid_x": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "WeightedCentroid_y": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     },
     "WeightedCentroid_z": {
       "datumType": null,
-      "hasUnit": "mm",
+      "hasUnit": "voxel",
       "measureOf": null
     }
   },
