@@ -76,9 +76,9 @@
       "measureOf": null
     },
     "NVoxels": {
-      "datumType": null,
+      "datumType": "http://uri.interlex.org/base/ilx_0102597",
       "hasUnit": "voxel",
-      "measureOf": null
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
     },
     "Orientation": {
       "datumType": null,
@@ -91,9 +91,9 @@
       "measureOf": null
     },
     "SurfaceAreaInMillimetersSquared": {
-      "datumType": null,
-      "hasUnit": "mm",
-      "measureOf": null
+      "datumType": "http://uri.interlex.org/base/ilx_0738276",
+      "hasUnit": "mm^2",
+      "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323",
     },
     "ThicknessSum": {
       "datumType": null,
@@ -101,14 +101,14 @@
       "measureOf": null
     },
     "Volume": {
-      "datumType": null,
+      "datumType": "http://uri.interlex.org/base/ilx_0738276",
       "hasUnit": "mm^3",
-      "measureOf": null
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
     },
     "VolumeInVoxels": {
-      "datumType": null,
+      "datumType": "http://uri.interlex.org/base/ilx_0102597",
       "hasUnit": "voxel",
-      "measureOf": null
+      "measureOf": "http://uri.interlex.org/base/ilx_0112559",
     },
     "WeightedCentroid_x": {
       "datumType": null,
@@ -131,58 +131,58 @@
       "antskey": [
         "3rd-Ventricle"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002286"
     },
     "4th-Ventricle": {
       "antskey": [
         "4th-Ventricle"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002422"
     },
     "Accumbens-area": {
       "antskey": [
         "Left-Accumbens-area",
         "Right-Accumbens-area"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001882"
     },
     "Amygdala": {
       "antskey": [
         "Left-Amygdala",
         "Right-Amygdala"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001876"
     },
     "BVOL": {
       "antskey": [
         "BVOL"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0000955"
     },
     "Brain": {
       "antskey": [
         "Brain"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0000955"
     },
     "Brain-Stem": {
       "antskey": [
         "Brain-Stem"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002298"
     },
     "CSF": {
       "antskey": [
         "CSF"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001359"
     },
     "Caudate": {
       "antskey": [
         "Left-Caudate",
         "Right-Caudate"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001873"
     },
     "Cerebellar vermal lobules I - V": {
       "antskey": [
@@ -214,74 +214,74 @@
         "Left-Cerebellum-White-Matter",
         "Right-Cerebellum-White-Matter"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002317"
     },
     "GVol": {
       "antskey": [
         "GVol"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0000956"
     },
     "Hippocampus": {
       "antskey": [
         "Left-Hippocampus",
         "Right-Hippocampus"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001954"
     },
     "Inf-Lat-Vent": {
       "antskey": [
         "Left-Inf-Lat-Vent",
         "Right-Inf-Lat-Vent"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0006091"
     },
     "Lateral-Ventricle": {
       "antskey": [
         "Left-Lateral-Ventricle",
         "Right-Lateral-Ventricle"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002285"
     },
     "Optic-Chiasm": {
       "antskey": [
         "Optic-Chiasm"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0000959"
     },
     "Pallidum": {
       "antskey": [
         "Left-Pallidum",
         "Right-Pallidum"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0006514"
     },
     "Putamen": {
       "antskey": [
         "Left-Putamen",
         "Right-Putamen"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001874"
     },
     "Thalamus-Proper": {
       "antskey": [
         "Left-Thalamus-Proper",
         "Right-Thalamus-Proper"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001897"
     },
     "VentralDC": {
       "antskey": [
         "Left-VentralDC",
         "Right-VentralDC"
       ],
-      "isAbout": null
+      "isAbout": "CUSTOM: it was 'invented' by CMA. Something like: Ventral Diencephalon contains the hypothalamus, basal forebrain, and sublenticular extended amygdala (SLEA), as well as a large portion of ventral tegmentum. See also https://doi.org/10.1016/j.biopsych.2008.01.018"
     },
     "WVol": {
       "antskey": [
         "WVol"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0002437"
     },
     "basal forebrain": {
       "antskey": [
@@ -512,7 +512,7 @@
         "Left-vessel",
         "Right-vessel"
       ],
-      "isAbout": null
+      "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001981"
     }
   }
 }
