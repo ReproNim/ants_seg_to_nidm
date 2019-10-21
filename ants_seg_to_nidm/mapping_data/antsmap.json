@@ -1,1 +1,518 @@
-{"Measures": {}, "Structures":  {}}
+{
+  "Measures": {
+    "AxesLength_x": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "AxesLength_y": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "AxesLength_z": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxLower_x": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxLower_y": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxLower_z": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxUpper_x": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxUpper_y": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "BoundingBoxUpper_z": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Centroid_x": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Centroid_y": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Centroid_z": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Eccentricity": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Elongation": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "IntegratedIntensity": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "NVoxels": {
+      "datumType": null,
+      "hasUnit": "voxel",
+      "measureOf": null
+    },
+    "Orientation": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "PearsonCorrelation": {
+      "datumType": null,
+      "hasUnit": null,
+      "measureOf": null
+    },
+    "SurfaceAreaInMillimetersSquared": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "ThicknessSum": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "Volume": {
+      "datumType": null,
+      "hasUnit": "mm^3",
+      "measureOf": null
+    },
+    "VolumeInVoxels": {
+      "datumType": null,
+      "hasUnit": "voxel",
+      "measureOf": null
+    },
+    "WeightedCentroid_x": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "WeightedCentroid_y": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    },
+    "WeightedCentroid_z": {
+      "datumType": null,
+      "hasUnit": "mm",
+      "measureOf": null
+    }
+  },
+  "Structures": {
+    "3rd-Ventricle": {
+      "antskey": [
+        "3rd-Ventricle"
+      ],
+      "isAbout": null
+    },
+    "4th-Ventricle": {
+      "antskey": [
+        "4th-Ventricle"
+      ],
+      "isAbout": null
+    },
+    "Accumbens-area": {
+      "antskey": [
+        "Left-Accumbens-area",
+        "Right-Accumbens-area"
+      ],
+      "isAbout": null
+    },
+    "Amygdala": {
+      "antskey": [
+        "Left-Amygdala",
+        "Right-Amygdala"
+      ],
+      "isAbout": null
+    },
+    "BVOL": {
+      "antskey": [
+        "BVOL"
+      ],
+      "isAbout": null
+    },
+    "Brain": {
+      "antskey": [
+        "Brain"
+      ],
+      "isAbout": null
+    },
+    "Brain-Stem": {
+      "antskey": [
+        "Brain-Stem"
+      ],
+      "isAbout": null
+    },
+    "CSF": {
+      "antskey": [
+        "CSF"
+      ],
+      "isAbout": null
+    },
+    "Caudate": {
+      "antskey": [
+        "Left-Caudate",
+        "Right-Caudate"
+      ],
+      "isAbout": null
+    },
+    "Cerebellar vermal lobules I - V": {
+      "antskey": [
+        "Cerebellar vermal lobules I - V"
+      ],
+      "isAbout": null
+    },
+    "Cerebellar vermal lobules VI - VII": {
+      "antskey": [
+        "Cerebellar vermal lobules VI - VII"
+      ],
+      "isAbout": null
+    },
+    "Cerebellar vermal lobules VIII - X": {
+      "antskey": [
+        "Cerebellar vermal lobules VIII - X"
+      ],
+      "isAbout": null
+    },
+    "Cerebellum-Exterior": {
+      "antskey": [
+        "Left-Cerebellum-Exterior",
+        "Right-Cerebellum-Exterior"
+      ],
+      "isAbout": null
+    },
+    "Cerebellum-White-Matter": {
+      "antskey": [
+        "Left-Cerebellum-White-Matter",
+        "Right-Cerebellum-White-Matter"
+      ],
+      "isAbout": null
+    },
+    "GVol": {
+      "antskey": [
+        "GVol"
+      ],
+      "isAbout": null
+    },
+    "Hippocampus": {
+      "antskey": [
+        "Left-Hippocampus",
+        "Right-Hippocampus"
+      ],
+      "isAbout": null
+    },
+    "Inf-Lat-Vent": {
+      "antskey": [
+        "Left-Inf-Lat-Vent",
+        "Right-Inf-Lat-Vent"
+      ],
+      "isAbout": null
+    },
+    "Lateral-Ventricle": {
+      "antskey": [
+        "Left-Lateral-Ventricle",
+        "Right-Lateral-Ventricle"
+      ],
+      "isAbout": null
+    },
+    "Optic-Chiasm": {
+      "antskey": [
+        "Optic-Chiasm"
+      ],
+      "isAbout": null
+    },
+    "Pallidum": {
+      "antskey": [
+        "Left-Pallidum",
+        "Right-Pallidum"
+      ],
+      "isAbout": null
+    },
+    "Putamen": {
+      "antskey": [
+        "Left-Putamen",
+        "Right-Putamen"
+      ],
+      "isAbout": null
+    },
+    "Thalamus-Proper": {
+      "antskey": [
+        "Left-Thalamus-Proper",
+        "Right-Thalamus-Proper"
+      ],
+      "isAbout": null
+    },
+    "VentralDC": {
+      "antskey": [
+        "Left-VentralDC",
+        "Right-VentralDC"
+      ],
+      "isAbout": null
+    },
+    "WVol": {
+      "antskey": [
+        "WVol"
+      ],
+      "isAbout": null
+    },
+    "basal forebrain": {
+      "antskey": [
+        "Left basal forebrain",
+        "Right basal forebrain"
+      ],
+      "isAbout": null
+    },
+    "ctx-caudalanteriorcingulate": {
+      "antskey": [
+        "ctx-lh-caudalanteriorcingulate",
+        "ctx-rh-caudalanteriorcingulate"
+      ],
+      "isAbout": null
+    },
+    "ctx-caudalmiddlefrontal": {
+      "antskey": [
+        "ctx-lh-caudalmiddlefrontal",
+        "ctx-rh-caudalmiddlefrontal"
+      ],
+      "isAbout": null
+    },
+    "ctx-cuneus": {
+      "antskey": [
+        "ctx-lh-cuneus",
+        "ctx-rh-cuneus"
+      ],
+      "isAbout": null
+    },
+    "ctx-entoinal": {
+      "antskey": [
+        "ctx-lh-entorhinal",
+        "ctx-rh-entorhinal"
+      ],
+      "isAbout": null
+    },
+    "ctx-fusiform": {
+      "antskey": [
+        "ctx-lh-fusiform",
+        "ctx-rh-fusiform"
+      ],
+      "isAbout": null
+    },
+    "ctx-inferiorparietal": {
+      "antskey": [
+        "ctx-lh-inferiorparietal",
+        "ctx-rh-inferiorparietal"
+      ],
+      "isAbout": null
+    },
+    "ctx-inferiortemporal": {
+      "antskey": [
+        "ctx-lh-inferiortemporal",
+        "ctx-rh-inferiortemporal"
+      ],
+      "isAbout": null
+    },
+    "ctx-insula": {
+      "antskey": [
+        "ctx-lh-insula",
+        "ctx-rh-insula"
+      ],
+      "isAbout": null
+    },
+    "ctx-isthmuscingulate": {
+      "antskey": [
+        "ctx-lh-isthmuscingulate",
+        "ctx-rh-isthmuscingulate"
+      ],
+      "isAbout": null
+    },
+    "ctx-lateraloccipital": {
+      "antskey": [
+        "ctx-lh-lateraloccipital",
+        "ctx-rh-lateraloccipital"
+      ],
+      "isAbout": null
+    },
+    "ctx-lateralorbitofrontal": {
+      "antskey": [
+        "ctx-lh-lateralorbitofrontal",
+        "ctx-rh-lateralorbitofrontal"
+      ],
+      "isAbout": null
+    },
+    "ctx-lingual": {
+      "antskey": [
+        "ctx-lh-lingual",
+        "ctx-rh-lingual"
+      ],
+      "isAbout": null
+    },
+    "ctx-medialorbitofrontal": {
+      "antskey": [
+        "ctx-lh-medialorbitofrontal",
+        "ctx-rh-medialorbitofrontal"
+      ],
+      "isAbout": null
+    },
+    "ctx-middletemporal": {
+      "antskey": [
+        "ctx-lh-middletemporal",
+        "ctx-rh-middletemporal"
+      ],
+      "isAbout": null
+    },
+    "ctx-paracentral": {
+      "antskey": [
+        "ctx-lh-paracentral",
+        "ctx-rh-paracentral"
+      ],
+      "isAbout": null
+    },
+    "ctx-parahippocampal": {
+      "antskey": [
+        "ctx-lh-parahippocampal",
+        "ctx-rh-parahippocampal"
+      ],
+      "isAbout": null
+    },
+    "ctx-parsopercularis": {
+      "antskey": [
+        "ctx-lh-parsopercularis",
+        "ctx-rh-parsopercularis"
+      ],
+      "isAbout": null
+    },
+    "ctx-parsorbitalis": {
+      "antskey": [
+        "ctx-lh-parsorbitalis",
+        "ctx-rh-parsorbitalis"
+      ],
+      "isAbout": null
+    },
+    "ctx-parstriangularis": {
+      "antskey": [
+        "ctx-lh-parstriangularis",
+        "ctx-rh-parstriangularis"
+      ],
+      "isAbout": null
+    },
+    "ctx-pericalcarine": {
+      "antskey": [
+        "ctx-lh-pericalcarine",
+        "ctx-rh-pericalcarine"
+      ],
+      "isAbout": null
+    },
+    "ctx-postcentral": {
+      "antskey": [
+        "ctx-lh-postcentral",
+        "ctx-rh-postcentral"
+      ],
+      "isAbout": null
+    },
+    "ctx-posteriorcingulate": {
+      "antskey": [
+        "ctx-lh-posteriorcingulate",
+        "ctx-rh-posteriorcingulate"
+      ],
+      "isAbout": null
+    },
+    "ctx-precentral": {
+      "antskey": [
+        "ctx-lh-precentral",
+        "ctx-rh-precentral"
+      ],
+      "isAbout": null
+    },
+    "ctx-precuneus": {
+      "antskey": [
+        "ctx-lh-precuneus",
+        "ctx-rh-precuneus"
+      ],
+      "isAbout": null
+    },
+    "ctx-rostralanteriorcingulate": {
+      "antskey": [
+        "ctx-lh-rostralanteriorcingulate",
+        "ctx-rh-rostralanteriorcingulate"
+      ],
+      "isAbout": null
+    },
+    "ctx-rostralmiddlefrontal": {
+      "antskey": [
+        "ctx-lh-rostralmiddlefrontal",
+        "ctx-rh-rostralmiddlefrontal"
+      ],
+      "isAbout": null
+    },
+    "ctx-superiorfrontal": {
+      "antskey": [
+        "ctx-lh-superiorfrontal",
+        "ctx-rh-superiorfrontal"
+      ],
+      "isAbout": null
+    },
+    "ctx-superiorparietal": {
+      "antskey": [
+        "ctx-lh-superiorparietal",
+        "ctx-rh-superiorparietal"
+      ],
+      "isAbout": null
+    },
+    "ctx-superiortemporal": {
+      "antskey": [
+        "ctx-lh-superiortemporal",
+        "ctx-rh-superiortemporal"
+      ],
+      "isAbout": null
+    },
+    "ctx-supramarginal": {
+      "antskey": [
+        "ctx-lh-supramarginal",
+        "ctx-rh-supramarginal"
+      ],
+      "isAbout": null
+    },
+    "ctx-transversetemporal": {
+      "antskey": [
+        "ctx-lh-transversetemporal",
+        "ctx-rh-transversetemporal"
+      ],
+      "isAbout": null
+    },
+    "vessel": {
+      "antskey": [
+        "Left-vessel",
+        "Right-vessel"
+      ],
+      "isAbout": null
+    }
+  }
+}

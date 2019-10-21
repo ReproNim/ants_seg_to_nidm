@@ -193,6 +193,8 @@ def hemiless(key):
         .replace("lh", "")
         .replace("Left-", "")
         .replace("Right-", "")
+        .replace("Left ", "")
+        .replace("Right ", "")
     )
 
 
