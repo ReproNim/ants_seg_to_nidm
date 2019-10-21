@@ -81,46 +81,29 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
     # iterate over columns in brain vols
     for key, j in brain_vols.T.iterrows():
         value = j.values[0]
-        voxkey = ANTSDKT(
+        keytuple = ANTSDKT(
             structure=key if "vol" in key.lower() else "Brain",
             hemi=None,
-            measure="NVoxels" if "vol" in key.lower() else key,
-            unit="voxel"
+            measure="Volume" if "vol" in key.lower() else key,
+            unit="mm^3"
             if "vol" in key.lower()
             else "mm"
             if "Thickness" in key
             else None,
         )
-        if str(voxkey) not in ants_cde:
+        if str(keytuple) not in ants_cde:
             ants_cde["count"] += 1
-            ants_cde[str(voxkey)] = {
+            ants_cde[str(keytuple)] = {
                 "id": f"{ants_cde['count']:0>6d}",
-                "label": f"{key} ({voxkey.unit})",
+                "label": f"{key} ({keytuple.unit})",
             }
             if force_error:
-                raise ValueError(f"Key {voxkey} not found in ANTS data elements file")
+                raise ValueError(f"Key {keytuple} not found in ANTS data elements file")
             changed = True
         if "vol" in key.lower():
-            measures.append((f'{ants_cde[str(voxkey)]["id"]}', str(int(value))))
+            measures.append((f'{ants_cde[str(keytuple)]["id"]}', str(int(value))))
         else:
-            measures.append((f'{ants_cde[str(voxkey)]["id"]}', str(value)))
-
-        if "vol" in key.lower():
-            volkey = ANTSDKT(
-                structure=voxkey.structure, hemi=None, measure="Volume", unit="mm^3"
-            )
-            if str(volkey) not in ants_cde:
-                ants_cde["count"] += 1
-                ants_cde[str(volkey)] = {
-                    "id": f"{ants_cde['count']:0>6d}",
-                    "label": f"{key} ({volkey.unit})",
-                }
-                if force_error:
-                    raise ValueError(
-                        f"Key {volkey} not found in ANTS data elements file"
-                    )
-                changed = True
-            measures.append((f'{ants_cde[str(volkey)]["id"]}', str(value * vox_size)))
+            measures.append((f'{ants_cde[str(keytuple)]["id"]}', str(value)))
 
     # iterate over columns in brain vols
     for row in ants_stats.iterrows():
@@ -132,6 +115,9 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
                 if structure is None:
                     raise ValueError(f"{int(val):d} did not return any structure")
                 continue
+            if "VolumeInVoxels" not in key and "Area" not in key:
+                continue
+            print(key)
             hemi, measure, unit = get_details(key, structure)
             key_tuple = ANTSDKT(
                 structure=structure, hemi=hemi, measure=measure, unit=unit
@@ -149,9 +135,7 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
                         f"Key {key_tuple} not found in ANTS data elements file"
                     )
                 changed = True
-            if "VolumeInVoxels" not in key:
-                continue
-            measures.append((f'{ants_cde[str(key_tuple)]["id"]}', str(val)))
+            # measures.append((f'{ants_cde[str(key_tuple)]["id"]}', str(val)))
 
             if "VolumeInVoxels" in key:
                 measure = "Volume"
