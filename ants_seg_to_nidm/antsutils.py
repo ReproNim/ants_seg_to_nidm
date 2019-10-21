@@ -117,7 +117,6 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
                 continue
             if "VolumeInVoxels" not in key and "Area" not in key:
                 continue
-            print(key)
             hemi, measure, unit = get_details(key, structure)
             key_tuple = ANTSDKT(
                 structure=structure, hemi=hemi, measure=measure, unit=unit
