@@ -59,10 +59,12 @@ import pandas as pd
 from pathlib import Path
 
 from rdflib import Graph, RDF, URIRef, util, term,Namespace,Literal,BNode
+from antsutils import read_ants_stats, create_cde_graph, convert_stats_to_nidm
+from io import StringIO
 
 import tempfile
 
-cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "ants-cdes.ttl"
+# cde_file = Path(os.path.dirname(__file__)) / "mapping_data" / "ants-cdes.ttl"
 
 
 
@@ -79,46 +81,45 @@ def url_validator(url):
     except:
         return False
 
-def add_seg_data(nidmdoc, subjid, measure, add_to_nidm=False):
+def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False):
     '''
     WIP: this function creates a NIDM file of brain volume data and if user supplied a NIDM-E file it will add brain volumes to the
     NIDM-E file for the matching subject ID
     :param nidmdoc:
-    :param subjid:
+    :param header:
     :param add_to_nidm:
     :return:
     '''
 
+
+    #for each of the header items create a dictionary where namespaces are freesurfer
     niiri=Namespace("http://iri.nidash.org/")
     nidmdoc.bind("niiri",niiri)
 
-    fs = Namespace("https://surfer.nmr.mgh.harvard.edu/")
-    nidmdoc.bind("fs",fs)
 
 
     software_activity = niiri[getUUID()]
     nidmdoc.add((software_activity,RDF.type,Constants.PROV['Activity']))
     nidmdoc.add((software_activity,Constants.DCT["description"],Literal("ANTS segmentation statistics")))
+    fs = Namespace(Constants.ANTS)
 
 
     #create software agent and associate with software activity
-    #software_agent = nidmdoc.graph.agent(QualifiedName(provNamespace("niiri",Constants.NIIRI),getUUID()),other_attributes={
-    software_agent = niiri[getUUID()]
+    #search and see if a software agent exists for this software, if so use it, if not create it
+    for software_uid in nidmdoc.subjects(predicate=Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE,object=URIRef(Constants.ANTS) ):
+        software_agent = software_uid
+        break
+    else:
+        software_agent = niiri[getUUID()]
     nidmdoc.add((software_agent,RDF.type,Constants.PROV['Agent']))
-    nidmdoc.add((software_agent,Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE,URIRef(Constants.FSL)))
+    neuro_soft=Namespace(Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE)
+    nidmdoc.add((software_agent,Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE,URIRef(Constants.ANTS)))
     nidmdoc.add((software_agent,RDF.type,Constants.PROV["SoftwareAgent"]))
     association_bnode = BNode()
     nidmdoc.add((software_activity,Constants.PROV['qualifiedAssociation'],association_bnode))
     nidmdoc.add((association_bnode,RDF.type,Constants.PROV['Agent']))
     nidmdoc.add((association_bnode,Constants.PROV['hadRole'],Constants.NIDM_NEUROIMAGING_ANALYSIS_SOFTWARE))
     nidmdoc.add((association_bnode,Constants.PROV['wasAssociatedWith'],software_agent))
-
-
-    #add ANTS data
-    datum_entity=niiri[getUUID()]
-    nidmdoc.add((datum_entity, RDF.type, Constants.PROV['Entity']))
-    nidmdoc.add((datum_entity,RDF.type,Constants.NIDM["ANTSStatsCollection"]))
-    nidmdoc.add((datum_entity, Constants.PROV['wasGeneratedBy'], software_activity))
 
     if not add_to_nidm:
         # create a new agent for subjid
@@ -127,11 +128,9 @@ def add_seg_data(nidmdoc, subjid, measure, add_to_nidm=False):
         nidmdoc.add((participant_agent,URIRef(Constants.NIDM_SUBJECTID.uri),Literal(subjid)))
 
     else:
-
-        #search for prov:agent with this subject id
-
+        # query to get agent id for subjid
         #find subject ids and sessions in NIDM document
-        query = """
+            query = """
                     PREFIX ndar:<https://ndar.nih.gov/api/datadictionary/v2/dataelement/>
                     PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
                     PREFIX prov:<http://www.w3.org/ns/prov#>
@@ -144,25 +143,15 @@ def add_seg_data(nidmdoc, subjid, measure, add_to_nidm=False):
                         ndar:src_subject_id \"%s\"^^xsd:string .
 
                     }""" % subjid
-        print(query)
-        qres = nidmdoc.query(query)
-        if len(qres) == 0:
-            print('Subject ID (%s) was not found in existing NIDM file.  No output written...' %subjid)
-            exit()
-        else:
-            for row in qres:
-                print('Found subject ID: %s in NIDM file (agent: %s)' %(subjid,row[0]))
-                participant_agent = row[0]
-
-
-    #create a blank node and qualified association with prov:Agent for participant
-    #row[0]
-    association_bnode = BNode()
-    nidmdoc.add((software_activity,Constants.PROV['qualifiedAssociation'],association_bnode))
-    nidmdoc.add((association_bnode,RDF.type,Constants.PROV['Agent']))
-    nidmdoc.add((association_bnode,Constants.PROV['hadRole'],Constants.SIO["Subject"]))
-    nidmdoc.add((association_bnode,Constants.PROV['wasAssociatedWith'],participant_agent))
-
+            #print(query)
+            qres = nidmdoc.query(query)
+            if len(qres) == 0:
+                print('Subject ID (%s) was not found in existing NIDM file.  No output written...' %subjid)
+                exit()
+            else:
+                 for row in qres:
+                    print('Found subject ID: %s in NIDM file (agent: %s)' %(subjid,row[0]))
+                    participant_agent = row[0]
 
     #create a blank node and qualified association with prov:Agent for participant
     association_bnode = BNode()
@@ -171,12 +160,8 @@ def add_seg_data(nidmdoc, subjid, measure, add_to_nidm=False):
     nidmdoc.add((association_bnode,Constants.PROV['hadRole'],Constants.SIO["Subject"]))
     nidmdoc.add((association_bnode,Constants.PROV['wasAssociatedWith'],participant_agent))
 
-
-    #iterate over measure dictionary where measures are the lines in the FS stats files which start with '# Measure' and
-    #the whole table at the bottom of the FS stats file that starts with '# ColHeaders
-    for measures in measure:
-        for items in measures["items"]:
-                nidmdoc.add((datum_entity,fs['fs_' + str(measures['structure']).rjust(5, '0')],Literal(items['value'])))
+    # add association between ANTSStatsCollection and computation activity
+    nidmdoc.add((URIRef(stats_entity_id.uri),Constants.PROV['wasGeneratedBy'],software_activity))
 
 
 def test_connection(remote=False):
@@ -295,9 +280,12 @@ def main():
 
 
     measures = read_ants_stats(labelstats,brainvol,imagefile)
+    [e,doc] = convert_stats_to_nidm(measures)
+    g = create_cde_graph()
 
-    cde = Graph()
-    cde.parse(source=str(cde_file),format='turtle')
+    # convert nidm stats graph to rdflib
+    g2 = Graph()
+    g2.parse(source=StringIO(doc.serialize(format='rdf',rdf_format='turtle')),format='turtle')
 
 
     # for measures we need to create NIDM structures using anatomy mappings
@@ -311,39 +299,42 @@ def main():
         output_filename = args.subjid + "_NIDM"
         # If user did not choose to add this data to an existing NIDM file then create a new one for the CSV data
 
-        # create an empty NIDM graph
-        nidmdoc = cde
 
-        add_seg_data(nidmdoc=nidmdoc, subjid=args.subjid,measure=measures)
+        nidmdoc = g+g2
+
+        # print(nidmdoc.serializeTurtle())
+
+        # add seg data to new NIDM file
+        add_seg_data(nidmdoc=nidmdoc,subjid=args.subjid,stats_entity_id=e.identifier)
 
         #serialize NIDM file
         print("Writing NIDM file...")
         if args.jsonld is not False:
-            nidmdoc.serialize(destination=join(args.output_dir,output_filename) + '.ttl',format='jsonld')
+            nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.json'),format='jsonld')
         else:
-            nidmdoc.serialize(destination=join(args.output_dir,output_filename) + '.ttl',format='turtle')
+            nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.ttl'),format='turtle')
 
 
         #nidmdoc.save_DotGraph(join(args.output_dir,output_filename + ".pdf"), format="pdf")
     # we adding these data to an existing NIDM file
     else:
         #read in NIDM file with rdflib
-        rdf_graph = Graph()
-        rdf_graph.parse(args.nidm_file,format=util.guess_format(args.nidm_file))
+        print("Reading in NIDM graph....")
+        g1 = Graph()
+        g1.parse(args.nidm_file,format=util.guess_format(args.nidm_file))
 
-        nidmdoc = cde + rdf_graph
+        print("Combining graphs...")
+        nidmdoc = g + g1 + g2
 
-        add_seg_data(nidmdoc=nidmdoc,measure=measures,subjid=args.subjid, add_to_nidm=True)
+        add_seg_data(nidmdoc=nidmdoc,subjid=args.subjid,stats_entity_id=e.identifier,add_to_nidm=True)
+
 
         #serialize NIDM file
-        #if args.jsonld is not False:
-        #   print("Writing NIDM file...")
-        #    rdf_graph_parse.serialize(destination=join(args.output_dir,output_filename + '.json'),format='json-ld')
-
-         #serialize NIDM file
-        print("Writing NIDM file...")
-        nidmdoc.serialize(destination=args.nidm_file,format='turtle')
-        
+        print("Writing Augmented NIDM file...")
+        if args.jsonld is not False:
+            nidmdoc.serialize(destination=args.nidm_file + '.json',format='jsonld')
+        else:
+            nidmdoc.serialize(destination=args.nidm_file,format='turtle')
 
 
 
