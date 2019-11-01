@@ -59,7 +59,7 @@ import pandas as pd
 from pathlib import Path
 
 from rdflib import Graph, RDF, URIRef, util, term,Namespace,Literal,BNode
-from antsutils import read_ants_stats, create_cde_graph, convert_stats_to_nidm
+from ants_seg_to_nidm.antsutils import read_ants_stats, create_cde_graph, convert_stats_to_nidm
 from io import StringIO
 
 import tempfile
