@@ -199,8 +199,8 @@ def main():
     parser.add_argument('-subjid','--subjid',dest='subjid',required=False, help='If a path to a URL or a stats file'
                             'is supplied via the -f/--seg_file parameters then -subjid parameter must be set with'
                             'the subject identifier to be used in the NIDM files')
-    parser.add_argument('-o', '--output_dir', dest='output_dir', type=str,
-                        help='Output directory', required=True)
+    parser.add_argument('-o', '--output', dest='output_dir', type=str,
+                        help='Output filename with full path', required=True)
     parser.add_argument('-j', '--jsonld', dest='jsonld', action='store_true', default = False,
                         help='If flag set then NIDM file will be written as JSONLD instead of TURTLE')
     parser.add_argument('-n','--nidm', dest='nidm_file', type=str, required=False,
@@ -212,6 +212,10 @@ def main():
     if (args.stats_files and (args.subjid is None)):
         parser.error("-f/--ants_urls and -d/--ants_stats requires -subjid/--subjid to be set!")
 
+    # if output_dir doesn't exist then create it
+    out_path = os.path.dirname(args.output_dir)
+    if not os.path.exists(out_path):
+        os.makedirs(out_path)
 
 
     # WIP: ANTS URL forms as comma spearated string in args.stats_urls:
@@ -310,9 +314,11 @@ def main():
         #serialize NIDM file
         print("Writing NIDM file...")
         if args.jsonld is not False:
-            nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.json'),format='jsonld')
+            # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.json'),format='jsonld')
+            nidmdoc.serialize(destination=join(args.output_dir),format='jsonld')
         else:
-            nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.ttl'),format='turtle')
+            # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.ttl'),format='turtle')
+            nidmdoc.serialize(destination=join(args.output_dir),format='turtle')
 
 
         #nidmdoc.save_DotGraph(join(args.output_dir,output_filename + ".pdf"), format="pdf")
