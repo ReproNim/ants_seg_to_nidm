@@ -245,6 +245,10 @@ def create_cde_graph(restrict_to=None):
     g.bind("uberon", "http://purl.obolibrary.org/obo/UBERON_")
     g.bind("ilx", "http://uri.interlex.org/base/ilx_")
 
+    # added by DBK to create subclass relationship
+    g.add((ants["DataElement"], rl.RDFS['subClassOf'], nidm['DataElement']))
+
+
     for key, value in ants_cde.items():
         if key == "count":
             continue
@@ -262,6 +266,9 @@ def create_cde_graph(restrict_to=None):
                 g.add((ants[antsid], nidm[subkey], rl.URIRef(item)))
             elif subkey in ["hasUnit"]:
                 g.add((ants[antsid], nidm[subkey], rl.Literal(item)))
+            # added by DBK to use rdfs:label
+            elif subkey in ["label"]:
+                g.add((ants[antsid], rl.RDFS['label'], rl.Literal(item)))
             else:
                 if isinstance(item, rl.URIRef):
                     g.add((ants[antsid], ants[subkey], item))
