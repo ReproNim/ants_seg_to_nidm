@@ -45,7 +45,7 @@ from prov.model import Namespace as provNamespace
 # standard library
 from pickle import dumps
 import os
-from os.path import join,basename,splitext,isfile
+from os.path import join,dirname
 from socket import getfqdn
 import glob
 
@@ -216,6 +216,10 @@ def main():
                         help='Output filename with full path', required=True)
     parser.add_argument('-j', '--jsonld', dest='jsonld', action='store_true', default = False,
                         help='If flag set then NIDM file will be written as JSONLD instead of TURTLE')
+    parser.add_argument('-add_de', '--add_de', dest='add_de', action='store_true', default = None,
+                        help='If flag set then data element data dictionary will be added to nidm file else it will written to a'
+                            'separate file as ants_cde.ttl in the output directory (or same directory as nidm file if -n paramemter'
+                            'is used.')
     parser.add_argument('-n','--nidm', dest='nidm_file', type=str, required=False,
                         help='Optional NIDM file to add segmentation data to.')
     parser.add_argument('-forcenidm','--forcenidm', action='store_true',required=False,
@@ -319,8 +323,10 @@ def main():
         output_filename = args.subjid + "_NIDM"
         # If user did not choose to add this data to an existing NIDM file then create a new one for the CSV data
 
-
-        nidmdoc = g+g2
+        if args.add_de is not None:
+            nidmdoc = g+g2
+        else:
+            nidmdoc = g2
 
         # print(nidmdoc.serializeTurtle())
 
@@ -335,7 +341,10 @@ def main():
         else:
             # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.ttl'),format='turtle')
             nidmdoc.serialize(destination=join(args.output_dir),format='turtle')
-
+        # added to support separate cde serialization
+        if args.add_de is None:
+            # serialize cde graph
+            g.serialize(destination=join(dirname(args.output_dir),"ants_cde.ttl"),format='turtle')
 
         #nidmdoc.save_DotGraph(join(args.output_dir,output_filename + ".pdf"), format="pdf")
     # we adding these data to an existing NIDM file
@@ -345,8 +354,11 @@ def main():
         g1 = Graph()
         g1.parse(args.nidm_file,format=util.guess_format(args.nidm_file))
 
-        print("Combining graphs...")
-        nidmdoc = g + g1 + g2
+        if args.add_de is not None:
+            print("Combining graphs...")
+            nidmdoc = g + g1 + g2
+        else:
+            nidmdoc = g1 + g2
 
         if args.forcenidm is not False:
             add_seg_data(nidmdoc=nidmdoc,subjid=args.subjid,stats_entity_id=e.identifier,add_to_nidm=True, forceagent=True)
@@ -361,7 +373,9 @@ def main():
         else:
             nidmdoc.serialize(destination=args.nidm_file,format='turtle')
 
-
+        if args.add_de is None:
+            # serialize cde graph
+            g.serialize(destination=join(dirname(args.output_dir),"ants_cde.ttl"),format='turtle')
 
 
 if __name__ == "__main__":
