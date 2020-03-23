@@ -128,10 +128,12 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
     nidmdoc.add((association_bnode,Constants.PROV['agent'],software_agent))
 
     if not add_to_nidm:
+
         # create a new agent for subjid
         participant_agent = niiri[getUUID()]
         nidmdoc.add((participant_agent,RDF.type,Constants.PROV['Agent']))
         nidmdoc.add((participant_agent,URIRef(Constants.NIDM_SUBJECTID.uri),Literal(subjid, datatype=XSD.string)))
+
 
     else:
         # query to get agent id for subjid
@@ -202,6 +204,22 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
 
     # add association between ANTSStatsCollection and computation activity
     nidmdoc.add((URIRef(stats_entity_id.uri),Constants.PROV['wasGeneratedBy'],software_activity))
+
+    # get project uuid from NIDM doc and make association with software_activity
+    query = """
+                        prefix nidm: <http://purl.org/nidash/nidm#>
+                        PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+                        select distinct ?project
+                        where {
+
+                            ?project rdf:type nidm:Project .
+
+                        }"""
+
+    qres = nidmdoc.query(query)
+    for row in qres:
+        nidmdoc.add((software_activity, Constants.DCT["isPartOf"], row['project']))
 
 
 def test_connection(remote=False):
