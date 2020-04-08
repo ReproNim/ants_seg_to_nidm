@@ -41,6 +41,7 @@ setup(
     packages=PACKAGES,
     install_requires=[
         'numpy',
+	'pynidm',
         'pandas',
     ], # Add requirements as necessary
     include_package_data=True,
