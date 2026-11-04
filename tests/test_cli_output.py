@@ -1,0 +1,29 @@
+"""Output formats of the command line."""
+import json
+
+import pytest
+from rdflib import Graph, Literal, URIRef
+from rdflib.namespace import RDF
+
+from ants_seg_to_nidm._pynidm import Constants, NIDM_SUBJECTID_URI
+from conftest import run_main
+
+
+@pytest.mark.parametrize("with_input", [False, True], ids=["new-file", "add-to-input"])
+def test_jsonld_flag_writes_json_ld(tmp_path, monkeypatch, stats_files, with_input):
+    out = tmp_path / "out" / "nidm.json"
+    argv = ["-f", stats_files, "-subjid", "sub-01", "-o", str(out), "-j"]
+    if with_input:
+        nidm_in = tmp_path / "input.ttl"
+        graph = Graph()
+        agent = URIRef("http://example.org/agent/01")
+        graph.add((agent, RDF.type, Constants.PROV["Agent"]))
+        graph.add((agent, URIRef(NIDM_SUBJECTID_URI), Literal("01")))
+        graph.serialize(destination=str(nidm_in), format="turtle")
+        argv += ["--nidm", str(nidm_in)]
+
+    assert run_main(monkeypatch, argv) == 0
+
+    json.loads(out.read_text())
+    graph = Graph().parse(str(out), format="json-ld")
+    assert (None, URIRef(NIDM_SUBJECTID_URI), None) in graph

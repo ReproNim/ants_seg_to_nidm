@@ -499,8 +499,8 @@ def main():
         #serialize NIDM file
         print("Writing NIDM file...")
         if args.jsonld is not False:
-            # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.json'),format='jsonld')
-            nidmdoc.serialize(destination=join(args.output_dir),format='jsonld')
+            # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.json'),format='json-ld')
+            nidmdoc.serialize(destination=join(args.output_dir),format='json-ld')
         else:
             # nidmdoc.serialize(destination=join(args.output_dir,output_filename +'.ttl'),format='turtle')
             nidmdoc.serialize(destination=join(args.output_dir),format='turtle')
@@ -535,7 +535,7 @@ def main():
         #serialize NIDM file
         print("Writing Augmented NIDM file...")
         if args.jsonld is not False:
-            nidmdoc.serialize(destination=args.output_dir,format='jsonld')
+            nidmdoc.serialize(destination=args.output_dir,format='json-ld')
         else:
             nidmdoc.serialize(destination=args.output_dir,format='turtle')
 
