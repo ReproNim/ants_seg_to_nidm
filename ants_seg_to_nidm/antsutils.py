@@ -174,6 +174,34 @@ def get_details(key, structure):
     return hemi, measure, unit
 
 
+def _ids(ids):
+    return ", ".join(map(str, sorted(ids)))
+
+
+def _freesurfer_refusal(foreign):
+    """Why ids outside FREESURFER_IDS are refused, and the remedy where one fits.
+
+    Only ids the Neuromorphometrics table names are pointed at
+    --label-protocol neuromorphometrics, and only conditionally: the same
+    number means another structure in each protocol (41 is FreeSurfer's
+    Right-Cerebral-White-Matter and Neuromorphometrics' Left-Cerebellum-White-
+    Matter), so the converter cannot tell which one the segmentation means.
+    """
+    message = (f"Label ID(s) {_ids(foreign)} are not among the ids the 'freesurfer' label "
+               f"protocol accepts (FreeSurfer aseg.stats structures, the subcortical ids of the "
+               f"ants-nidm --method quick template, and cortical parcels 1002-1035/2002-2035 "
+               f"except 1004/2004).")
+    nm_named = foreign & set(_neuromorphometrics_labels())
+    if nm_named:
+        message += (f" {_ids(nm_named)} are subcortical ids of the Neuromorphometrics protocol "
+                    f"(ants-nidm --method fusion); if the segmentation follows that protocol, "
+                    f"--label-protocol neuromorphometrics names them.")
+    neither = foreign - nm_named
+    if neither:
+        message += f" {_ids(neither)} are accepted under neither protocol."
+    return message
+
+
 def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=True,
                     collect_missing=False, label_protocol=FREESURFER):
     """
@@ -239,14 +267,9 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
             measures.append((f'{ants_cde[str(keytuple)]["id"]}', str(value)))
 
     if label_protocol == FREESURFER:
-        foreign = sorted({int(v) for v in ants_stats["Label"]} - FREESURFER_IDS)
+        foreign = {int(v) for v in ants_stats["Label"]} - FREESURFER_IDS
         if foreign:
-            raise ValueError(
-                f"Label ID(s) {', '.join(map(str, foreign))} are not in the FreeSurfer "
-                f"aseg/cortical vocabulary the default 'freesurfer' label protocol "
-                f"accepts. If the segmentation is numbered in another protocol, pass "
-                f"--label-protocol (choices: {', '.join(LABEL_PROTOCOLS)})."
-            )
+            raise ValueError(_freesurfer_refusal(foreign))
 
     # iterate over rows in label stats
     for row in ants_stats.iterrows():

@@ -122,3 +122,47 @@ def test_cli_default_protocol_refuses_a_neuromorphometrics_id(tmp_path, monkeypa
 def antsutils_ants_ns():
     from ants_seg_to_nidm._pynidm import Constants
     return Constants.ANTS
+
+
+def _accepted_ids_without_data_elements():
+    cdes = json.loads(Path(antsutils.cde_file).read_text())
+    missing = set()
+    for label_id in FREESURFER_IDS:
+        name = get_id_to_struct(label_id, protocol=FREESURFER)
+        hemi, _, _ = antsutils.get_details("VolumeInVoxels", name)
+        if str(ANTSDKT(structure=name, hemi=hemi, measure="Volume", unit="mm^3")) not in cdes:
+            missing.add(label_id)
+    return missing
+
+
+def test_help_says_which_accepted_ids_still_fail(monkeypatch, capsys):
+    """The default protocol accepts 12 aseg.stats ids that have no data
+    elements; a run with one of them still fails, and --help says so."""
+    assert _accepted_ids_without_data_elements() == {8, 77, 78, 79, 80, 81, 82,
+                                                     251, 252, 253, 254, 255}
+    monkeypatch.setattr("sys.argv", ["antsegstats2nidm", "-h"])
+    from ants_seg_to_nidm import ants_seg_to_nidm as cli
+    with pytest.raises(SystemExit):
+        cli.main()
+    text = " ".join(capsys.readouterr().out.split())
+    assert "8, 77-82 and 251-255 have no data elements and still fail" in text
+
+
+def test_refusal_names_a_remedy_only_for_ids_it_fits(tmp_path):
+    """2/3/41/42 are FreeSurfer's own cerebral white matter and cortex ids,
+    which aseg.stats does not report; the message must not call them
+    non-FreeSurfer, and must offer --label-protocol neuromorphometrics only
+    for ids that protocol names (41 and 59), never for 2, 3, 42."""
+    labelstats, brainvols = _write_stats(tmp_path, [2, 3, 17, 41, 42, 59])
+
+    with pytest.raises(ValueError) as err:
+        read_ants_stats(labelstats, brainvols, IMAGE)
+
+    message = " ".join(str(err.value).split())
+    assert "not in the FreeSurfer" not in message
+    assert "not among the ids the 'freesurfer' label protocol accepts" in message
+    assert ("41, 59 are subcortical ids of the Neuromorphometrics protocol "
+            "(ants-nidm --method fusion); if the segmentation follows that protocol, "
+            "--label-protocol neuromorphometrics names them") in message
+    assert "2, 3, 42 are accepted under neither protocol" in message
+    assert " 17" not in message

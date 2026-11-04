@@ -384,9 +384,11 @@ def main():
     parser.add_argument('--label-protocol', dest='label_protocol', required=False,
                         choices=LABEL_PROTOCOLS, default=FREESURFER,
                         help='Numbering the segmentation label ids follow. "freesurfer" (default) '
-                             'accepts the FreeSurfer aseg.stats structures, the subcortical ids of '
+                             'accepts the FreeSurfer aseg.stats structure ids, the subcortical ids of '
                              'the OASIS-30 template label map ants-nidm --method quick uses, and the '
-                             'cortical parcels 1002-1035/2002-2035 except 1004/2004; any other id is an error. '
+                             'cortical parcels 1002-1035/2002-2035 except 1004/2004; any other id is an '
+                             'error. Of the accepted aseg.stats ids, 8, 77-82 and 251-255 have no data '
+                             'elements and still fail. '
                              '"neuromorphometrics" names the 37 subcortical ids of the OASIS-TRT-20 '
                              'DKT31_CMA atlases (ants-nidm --method fusion), which follow the '
                              'Neuromorphometrics numbering, and names ids of 1000 and above (cortical '
