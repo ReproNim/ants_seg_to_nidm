@@ -10,7 +10,8 @@ it measures.
 import json
 from pathlib import Path
 
-from ants_seg_to_nidm.antsutils import ANTSDKT, cde_file, read_ants_stats
+from ants_seg_to_nidm import antsutils
+from ants_seg_to_nidm.antsutils import ANTSDKT, read_ants_stats
 
 EXAMPLES_DIR = Path(__file__).resolve().parents[1] / "examples"
 BRAIN = "http://purl.obolibrary.org/obo/UBERON_0000955"
@@ -18,7 +19,7 @@ VOLUME = "http://uri.interlex.org/base/ilx_0112559"
 
 
 def _cdes():
-    return json.loads(Path(cde_file).read_text())
+    return json.loads(Path(antsutils.cde_file).read_text())
 
 
 def _key(structure):
@@ -43,7 +44,7 @@ def test_labelvol_is_a_volume_but_not_about_the_brain():
 
 
 def test_both_volumes_convert_without_minting_elements(tmp_path):
-    before = Path(cde_file).read_bytes()
+    before = Path(antsutils.cde_file).read_bytes()
     labelstats = tmp_path / "antslabelstats.csv"
     labelstats.write_text("Label,VolumeInVoxels,Volume_mm3\n4,1000,1000.0\n")
     brainvols = tmp_path / "antsbrainvols.csv"
@@ -56,4 +57,4 @@ def test_both_volumes_convert_without_minting_elements(tmp_path):
     cdes = _cdes()
     assert measures[cdes[_key("BVOL")]["id"]] == "1677000"
     assert measures[cdes[_key("LABELVOL")]["id"]] == "904000"
-    assert Path(cde_file).read_bytes() == before
+    assert Path(antsutils.cde_file).read_bytes() == before
