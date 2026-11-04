@@ -140,6 +140,10 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
     else:
         # query to get agent id for subjid
         #find subject ids and sessions in NIDM document
+        # The id is compared with str(): PyNIDM 4.x writes src_subject_id as
+        # "..."^^xsd:string and PyNIDM 5 as a plain literal, and rdflib treats
+        # the two as different terms, so matching the typed form alone missed
+        # every subject in a PyNIDM 5 input.
             query = """
                     PREFIX ndar:<https://ndar.nih.gov/api/datadictionary/v2/dataelement/>
                     PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -150,7 +154,8 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
                     where {
 
                         ?agent rdf:type prov:Agent ;
-                        ndar:src_subject_id \"%s\"^^xsd:string .
+                        ndar:src_subject_id ?sid .
+                        FILTER(str(?sid) = \"%s\")
 
                     }""" % subjid
             #print(query)
@@ -175,7 +180,8 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
                         where {
 
                             ?agent rdf:type prov:Agent ;
-                            ndar:src_subject_id \"%s\"^^xsd:string .
+                            ndar:src_subject_id ?sid .
+                        FILTER(str(?sid) = \"%s\")
 
                         }""" % subjid_stripped
                     qres2 = nidmdoc.query(query)
@@ -197,7 +203,8 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
                         where {
 
                             ?agent rdf:type prov:Agent ;
-                            ndar:src_subject_id \"%s\"^^xsd:string .
+                            ndar:src_subject_id ?sid .
+                        FILTER(str(?sid) = \"%s\")
 
                         }""" % subjid_stripped.lstrip('0')
                     #print(query)

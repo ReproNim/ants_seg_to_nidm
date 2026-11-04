@@ -114,3 +114,36 @@ def test_add_seg_data_warns_and_chooses_first_when_multiple_acquisitions():
 
     assert (None, Constants.PROV['used'], first) in graph
     assert (None, Constants.PROV['used'], URIRef("http://example.org/acquisition/objectB")) not in graph
+
+
+@pytest.mark.parametrize("datatype", [XSD.string, None], ids=["xsd-string", "plain"])
+@pytest.mark.parametrize("stored_id", ["sub-0050002", "0050002", "50002"])
+def test_add_seg_data_finds_subject_whatever_the_literal_form(stored_id, datatype):
+    # PyNIDM 4.x's bids2nidm writes src_subject_id as "..."^^xsd:string,
+    # PyNIDM 5's as a plain literal. rdflib treats the two as different terms,
+    # so a query spelling the datatype matched only the 4.x form, and on 5.x
+    # input --forcenidm minted a second subject agent with no link to the
+    # input's demographics or acquisitions.
+    graph = Graph()
+    participant_agent = URIRef("http://example.org/agent/participant")
+    graph.add((participant_agent, RDF.type, Constants.PROV['Agent']))
+    graph.add((participant_agent, URIRef(NIDM_SUBJECTID_URI),
+               Literal(stored_id, datatype=datatype)))
+    acquisition = _add_anatomical_acquisition(
+        graph,
+        participant_agent,
+        "http://example.org/acquisition/object",
+        "http://example.org/activity/acq",
+    )
+
+    add_seg_data(
+        graph,
+        SUBJECT_ID,
+        _StatEntity("http://example.org/entity/stats"),
+        add_to_nidm=True,
+        forceagent=True,
+    )
+
+    agents = set(graph.subjects(URIRef(NIDM_SUBJECTID_URI), None))
+    assert agents == {participant_agent}
+    assert (None, Constants.PROV['used'], acquisition) in graph
