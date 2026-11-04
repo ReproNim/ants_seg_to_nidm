@@ -152,13 +152,58 @@ def find_subject_agent(nidmdoc, subjid, forceagent=False):
     )
 
 
-def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=False):
+def select_acquisition(rows, acq_filenames, subjid):
+    """Pick the anatomical AcquisitionObjects the stats were computed from.
+
+    :param rows: query results with .acqObj and .filename (the input's nfo:filename)
+    :param acq_filenames: file names (or paths) of the images the segmentation
+        used, or None
+    :param subjid: subject identifier, for messages
+    :return: list of AcquisitionObjects to link; empty to leave the stats unlinked
+
+    A subject can have several anatomical acquisitions (sessions, runs, acq-
+    variants). With acq_filenames, each name must match, by file name, exactly
+    one acquisition, and all of them are linked. Without it, a single candidate
+    is linked. Anything else is left unlinked with a warning rather than
+    linked to a guess.
+    """
+    if not acq_filenames:
+        candidates = sorted({r.acqObj for r in rows}, key=str)
+        if len(candidates) == 1:
+            return candidates
+        if not candidates:
+            warnings.warn(f"No anatomical MRI AcquisitionObject found for subject {subjid}; "
+                          f"the stats are not linked to an acquisition")
+        else:
+            warnings.warn(f"{len(candidates)} anatomical AcquisitionObjects found for subject "
+                          f"{subjid}; the stats are not linked to an acquisition "
+                          f"(-acq_filename names the ones used)")
+        return []
+    chosen = []
+    for name in acq_filenames:
+        want = os.path.basename(name)
+        matches = sorted({r.acqObj for r in rows
+                          if r.filename is not None and str(r.filename).split('/')[-1] == want},
+                         key=str)
+        if len(matches) != 1:
+            warnings.warn(f"{len(matches)} anatomical AcquisitionObjects with file name {want} "
+                          f"found for subject {subjid}; the stats are not linked to an acquisition")
+            return []
+        chosen.append(matches[0])
+    return sorted(set(chosen), key=str)
+
+
+def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=False,
+                 acq_filename=None):
     '''
     WIP: this function creates a NIDM file of brain volume data and if user supplied a NIDM-E file it will add brain volumes to the
     NIDM-E file for the matching subject ID
     :param nidmdoc:
     :param header:
     :param add_to_nidm:
+    :param acq_filename: file names (or paths) of the anatomical images the
+        stats came from, used to pick their AcquisitionObjects in the input
+        NIDM (see select_acquisition)
     :return:
     '''
 
@@ -227,32 +272,21 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
             """
             PREFIX prov: <http://www.w3.org/ns/prov#>
             PREFIX nidm: <http://purl.org/nidash/nidm#>
-            SELECT DISTINCT ?acqObj
+            PREFIX nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+            SELECT DISTINCT ?acqObj ?filename
             WHERE {
                 ?acqObj a nidm:AcquisitionObject ;
                         prov:wasGeneratedBy/prov:qualifiedAssociation/prov:agent ?subject ;
                         nidm:hadAcquisitionModality nidm:MagneticResonanceImaging ;
                         nidm:hadImageUsageType nidm:Anatomical .
+                OPTIONAL { ?acqObj nfo:filename ?filename }
             }
             """
         )
         results = list(
             nidmdoc.query(query_acq, initBindings={'subject': participant_agent})
         )
-        if not results:
-            warnings.warn(
-                f"No anatomical MRI AcquisitionObject found for subject {subjid}"
-            )
-            acquisition_obj = None
-        else:
-            candidates = sorted({row.acqObj for row in results}, key=str)
-            if len(candidates) > 1:
-                warnings.warn(
-                    f"Multiple anatomical AcquisitionObjects found for subject {subjid}; using {candidates[0]}"
-                )
-            acquisition_obj = candidates[0]
-
-        if acquisition_obj:
+        for acquisition_obj in select_acquisition(results, acq_filename, subjid):
             nidmdoc.add((software_activity, Constants.PROV['used'], acquisition_obj))
 
     #create a blank node and qualified association with prov:Agent for participant
@@ -341,7 +375,17 @@ def main():
                              'the OASIS-TRT-20 DKT31_CMA atlases are. The two share a numeric range '
                              'and disagree about what each number means, so naming a segmentation '
                              'with the wrong one produces a valid file describing wrong structures.')
+    parser.add_argument('-acq_filename', '--acq_filename', dest='acq_filename', nargs='+',
+                        required=False, default=None,
+                        help='With -n: file names (or paths) of the anatomical images the stats were '
+                             'computed from. The stats are linked (prov:used) to the input NIDM '
+                             'acquisitions with those file names if each name matches exactly one of '
+                             'the subject\'s anatomical acquisitions, and left unlinked otherwise. '
+                             'Without it the stats are linked only when the subject has a single '
+                             'anatomical acquisition.')
     args = parser.parse_args()
+    if args.acq_filename and not args.nidm_file:
+        parser.error("-acq_filename requires -n/--nidm")
 
     # test whether user supplied stats file directly and if so they the subject id must also be supplied so we
     # know which subject the stats file is for
@@ -481,7 +525,8 @@ def main():
 
         try:
             add_seg_data(nidmdoc=nidmdoc,subjid=args.subjid,stats_entity_id=e.identifier,
-                         add_to_nidm=True, forceagent=args.forcenidm is not False)
+                         add_to_nidm=True, forceagent=args.forcenidm is not False,
+                         acq_filename=args.acq_filename)
         except SubjectLookupError as err:
             print("ERROR: %s" % err, file=sys.stderr)
             sys.exit(1)
