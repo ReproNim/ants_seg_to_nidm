@@ -143,6 +143,75 @@ def test_a_quote_in_a_stored_id_matches_itself():
     assert _subject_agent_of_stats(graph) == {agent}
 
 
+# Every node carrying a subject id is a subject, whatever its rdf:type and
+# under either NDAR IRI (the rule segstats_jsonld uses too). A participant a
+# stricter rule did not see made the input look subject-less, so --forcenidm
+# attached the stats to a new agent and the run exited 0.
+HTTP_SUBJECT_ID = URIRef(str(SUBJECT_ID).replace("https://", "http://", 1))
+SUBJECT_KINDS = ["nidm-subject", "untyped", "http-ndar-iri"]
+
+
+def _add_participant(graph, kind, stored_id):
+    node = URIRef(f"http://example.org/participant/{kind}/{stored_id}")
+    if kind == "nidm-subject":
+        graph.add((node, RDF.type, Constants.NIDM["Subject"]))
+    if kind == "http-ndar-iri":
+        graph.add((node, RDF.type, Constants.PROV["Person"]))
+    predicate = HTTP_SUBJECT_ID if kind == "http-ndar-iri" else SUBJECT_ID
+    graph.add((node, predicate, Literal(stored_id)))
+    return node
+
+
+@pytest.mark.parametrize("kind", SUBJECT_KINDS)
+def test_any_node_with_a_subject_id_is_found(kind):
+    graph = Graph()
+    node = _add_participant(graph, kind, "0050002")
+
+    add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=True)
+
+    assert _subject_agent_of_stats(graph) == {node}
+
+
+@pytest.mark.parametrize("forceagent", [True, False], ids=["forcenidm", "no-forcenidm"])
+@pytest.mark.parametrize("kind", SUBJECT_KINDS)
+def test_a_miss_beside_any_node_with_a_subject_id_is_an_error(kind, forceagent):
+    graph = Graph()
+    _add_participant(graph, kind, "0050003")
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=forceagent)
+
+    assert "0050003" in str(err.value)
+    assert _subject_agent_of_stats(graph) == set()
+
+
+def test_a_typed_and_an_untyped_node_with_the_same_id_are_two_matches():
+    graph, (typed,) = _graph_with_subjects("0050002")
+    untyped = _add_participant(graph, "untyped", "50002")
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=True)
+
+    assert str(typed) in str(err.value) and str(untyped) in str(err.value)
+
+
+@pytest.mark.parametrize("kind", SUBJECT_KINDS)
+def test_cli_miss_beside_any_node_with_a_subject_id_fails_even_with_forcenidm(
+        tmp_path, monkeypatch, stats_files, capsys, kind):
+    graph = Graph()
+    _add_participant(graph, kind, "51456")
+    nidm_in = tmp_path / "input.ttl"
+    graph.serialize(destination=str(nidm_in), format="turtle")
+    out = tmp_path / "out" / "nidm.ttl"
+
+    code = run_main(monkeypatch, ["-f", stats_files, "-subjid", "sub-0050002",
+                                  "-o", str(out), "--nidm", str(nidm_in), "--forcenidm"])
+
+    assert code == 1
+    assert not out.exists()
+    assert "which has subject IDs: 51456" in capsys.readouterr().err
+
+
 def _write_input_nidm(path, *ids):
     graph, _ = _graph_with_subjects(*ids, datatype=None)
     graph.serialize(destination=str(path), format="turtle")

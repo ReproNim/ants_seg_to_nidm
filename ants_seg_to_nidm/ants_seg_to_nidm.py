@@ -103,23 +103,32 @@ def normalise_subject_id(value):
     return stripped if stripped or not text else "0"
 
 
+# ndar:src_subject_id as PyNIDM writes it, and under the http:// form of the
+# same NDAR IRI, which other NIDM producers use.
+SUBJECT_ID_PREDICATES = (
+    URIRef(NIDM_SUBJECTID_URI),
+    URIRef(NIDM_SUBJECTID_URI.replace("https://", "http://", 1)),
+)
+
+
 def find_subject_agent(nidmdoc, subjid, forceagent=False):
     """Return the input agent whose ndar:src_subject_id is subjid.
 
-    Every agent (prov:Agent or prov:Person) carrying ndar:src_subject_id is
-    compared with subjid after normalise_subject_id() on both sides.
+    Every node carrying ndar:src_subject_id, under the https:// or the
+    http:// NDAR IRI and whatever its rdf:type, is a subject, so a
+    participant typed only nidm:Subject, or not typed, is never mistaken for
+    an input without subjects. Its ids are compared with subjid after
+    normalise_subject_id() on both sides.
     Exactly one match is returned. Several matches raise. No match raises
     when the input has subject agents, with or without forceagent, because
     attaching the stats to a new agent would detach them from that subject's
     other data. With no subject agents in the input, forceagent returns None
     (the caller creates the agent) and otherwise raises.
     """
-    subject_id = URIRef(NIDM_SUBJECTID_URI)
-    agent_types = {Constants.PROV['Agent'], Constants.PROV['Person']}
     stored = [
         (agent, str(sid))
-        for agent, sid in nidmdoc.subject_objects(subject_id)
-        if agent_types & set(nidmdoc.objects(agent, RDF.type))
+        for predicate in SUBJECT_ID_PREDICATES
+        for agent, sid in nidmdoc.subject_objects(predicate)
     ]
     wanted = normalise_subject_id(subjid)
     matches = {}
