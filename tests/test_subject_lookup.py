@@ -236,6 +236,25 @@ def test_a_failed_lookup_leaves_the_graph_unchanged(case):
     assert set(graph) == before
 
 
+@pytest.mark.parametrize("value, expected", [
+    ("sub-0050002", "50002"), ("0050002", "50002"), ("50002", "50002"),
+    ("0", "0"), ("000", "0"), ("sub-00", "0"), ("sub-", ""), ("", ""),
+    (Literal("007", datatype=XSD.string), "7"),
+])
+def test_normalise_subject_id(value, expected):
+    """The same table as segstats_jsonld's, so both converters normalise alike."""
+    from ants_seg_to_nidm.ants_seg_to_nidm import normalise_subject_id
+    assert normalise_subject_id(value) == expected
+
+
+def test_an_all_zero_id_matches_its_other_spellings():
+    graph, (agent,) = _graph_with_subjects("0")
+
+    add_seg_data(graph, "sub-000", STATS, add_to_nidm=True)
+
+    assert _subject_agent_of_stats(graph) == {agent}
+
+
 def _write_input_nidm(path, *ids):
     graph, _ = _graph_with_subjects(*ids, datatype=None)
     graph.serialize(destination=str(path), format="turtle")

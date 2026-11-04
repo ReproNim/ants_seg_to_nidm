@@ -214,3 +214,19 @@ def test_help_says_both_protocols_refuse_ids_they_do_not_accept(monkeypatch, cap
     text = " ".join(capsys.readouterr().out.split())
     assert "Any other id is an error under either protocol, also with --collect-missing" in text
     assert "ids outside the freesurfer protocol's vocabulary" not in text
+
+
+@pytest.mark.parametrize("label_id", [1004, 2004])
+@pytest.mark.parametrize("protocol", [FREESURFER, NEUROMORPHOMETRICS])
+def test_corpus_callosum_parcels_are_refused(tmp_path, protocol, label_id):
+    """x004 is not a DKT31 parcel and ants-cdes.json has no data element for
+    it, so it is outside both protocols and refused as such, not reported as
+    a missing data element."""
+    labelstats, brainvols = _write_stats(tmp_path, [17 if protocol == FREESURFER else 59, label_id])
+
+    with pytest.raises(ValueError) as err:
+        read_ants_stats(labelstats, brainvols, IMAGE, label_protocol=protocol)
+
+    message = str(err.value)
+    assert message.startswith(f"Label ID(s) {label_id} are not among the ids the '{protocol}'")
+    assert f"{label_id} are accepted under neither protocol" in message
