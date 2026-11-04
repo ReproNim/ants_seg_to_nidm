@@ -181,7 +181,9 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
     ['structure':XX, 'items': [{'name': 'NVoxels', 'description': 'Number of voxels','value':XX, 'units':'unitless'},
                         {'name': 'Volume_mm3', 'description': ''Volume', 'value':XX, 'units':'mm^3'}]]
     :param ants_stats_file: path to ANTS segmentation output file named "antslabelstats"
-    :param ants_brainvols_file: path to ANTS segmentation output for Bvol, Gvol, Wvol, and ThicknessSum (called antsbrainvols"
+    :param ants_brainvols_file: path to the ANTs "antsbrainvols" CSV: one row, columns matched by
+        name to data elements (BVOL = brain-extraction mask volume, LABELVOL = sum of the label
+        volumes, GMVOL, WMVOL, CSFVOL, ThicknessSum, PearsonCorrelation)
     :param mri_file: mri file to extract voxel sizes from
     :param freesurfer_lookup_table: Lookup table used to map 1st column of ants_stats_file label numbers to structure names
     :param label_protocol: which numbering the label ids follow -- "freesurfer"

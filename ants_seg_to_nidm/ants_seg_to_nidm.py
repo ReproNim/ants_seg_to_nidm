@@ -343,11 +343,14 @@ def main():
                                         anatomical designations, and save the statistics + region designations out as
                                         NIDM serializations (i.e. TURTLE, JSON-LD RDF)''',formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-f', '--ants_stats', dest='stats_files',required=True, type=str,help='''A comma separated string of paths to: ANTS \"lablestats\" CSV
-                            file (col 1=Label number, col 2=VolumeinVoxels), ANTS \"brainvols\" CSV file (col 2=BVOL, col 3=GVol, col 4=WVol),
-                            MRI or Image file to extract voxel sizes OR A comma separated string of path \n OR URLs to a ANTS segmentation files and
-                                an image file for voxel sizes: /..../antslabelstats,/..../antsbrainvols,/..../mri_file. \n Note, currently this is tested
-                                on ReproNim data''')
+    parser.add_argument('-f', '--ants_stats', dest='stats_files',required=True, type=str,help='''A comma separated string of three paths or URLs:
+                            the ANTs "labelstats" CSV (a Label column of segmentation label ids, plus
+                            VolumeInVoxels and optionally SurfaceAreaInMillimetersSquared), the ANTs
+                            "brainvols" CSV (one row; columns matched by name, each needing a data element:
+                            BVOL = brain volume from the brain extraction mask, LABELVOL = sum of the
+                            labelled structure volumes, which is not a brain volume, and GMVOL, WMVOL,
+                            CSFVOL, ThicknessSum, PearsonCorrelation), and an image to read voxel sizes
+                            from: /..../antslabelstats.csv,/..../antsbrainvols.csv,/..../image.nii.gz''')
     parser.add_argument('-subjid','--subjid',dest='subjid',required=False, help='If a path to a URL or a stats file'
                             'is supplied via the -f/--seg_file parameters then -subjid parameter must be set with'
                             'the subject identifier to be used in the NIDM files')
@@ -362,19 +365,25 @@ def main():
     parser.add_argument('-n','--nidm', dest='nidm_file', type=str, required=False,
                         help='Optional NIDM file to add segmentation data to.')
     parser.add_argument('-forcenidm','--forcenidm', action='store_true',required=False,
-                        help='If adding to NIDM file this parameter forces the data to be added even if the participant'
-                             'doesnt currently exist in the NIDM file.')
+                        help='With -n: if the input NIDM has no subject agents at all, add one for -subjid. '
+                             'If it has subject agents and none matches -subjid, the run fails either way.')
     parser.add_argument('--collect-missing', action='store_true', required=False,
-                        help='Collect and report all missing labels instead of stopping at the first error. '
-                             'Useful for identifying all labels that need to be filtered in wrapper.py.')
+                        help='Report every label and brain volume column that has no data element, instead of '
+                             'stopping at the first, and exit non-zero if there are any. Label ids '
+                             'with no name under the label protocol are skipped with a warning; ids '
+                             'outside the freesurfer protocol\'s vocabulary still fail.')
     parser.add_argument('--label-protocol', dest='label_protocol', required=False,
                         choices=LABEL_PROTOCOLS, default=FREESURFER,
                         help='Numbering the segmentation label ids follow. "freesurfer" (default) '
-                             'suits a FreeSurfer aseg-numbered segmentation. "neuromorphometrics" '
-                             'suits one numbered by the Neuromorphometrics/BrainCOLOR protocol, as '
-                             'the OASIS-TRT-20 DKT31_CMA atlases are. The two share a numeric range '
-                             'and disagree about what each number means, so naming a segmentation '
-                             'with the wrong one produces a valid file describing wrong structures.')
+                             'accepts the FreeSurfer aseg.stats structures, the subcortical ids of '
+                             'the OASIS-30 template label map ants-nidm --method quick uses, and the '
+                             'cortical parcels 1002-1035/2002-2035 except 1004/2004; any other id is an error. '
+                             '"neuromorphometrics" names the 37 subcortical ids of the OASIS-TRT-20 '
+                             'DKT31_CMA atlases (ants-nidm --method fusion), which follow the '
+                             'Neuromorphometrics numbering, and names ids of 1000 and above (cortical '
+                             'numbering, shared by both) from the FreeSurfer table; other '
+                             'Neuromorphometrics/BrainCOLOR ids below 1000 are not named. The two share a '
+                             'numeric range and disagree about what each number means.')
     parser.add_argument('-acq_filename', '--acq_filename', dest='acq_filename', nargs='+',
                         required=False, default=None,
                         help='With -n: file names (or paths) of the anatomical images the stats were '
