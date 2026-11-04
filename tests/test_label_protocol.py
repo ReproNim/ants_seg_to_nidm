@@ -1,10 +1,10 @@
-"""Naming a segmentation with the wrong label protocol is the failure this
-converter is now required to make impossible.
+"""Naming a segmentation with the wrong label protocol.
 
 The FreeSurfer aseg and Neuromorphometrics/BrainCOLOR protocols share a
-numeric range and disagree about what each number means, so the wrong choice
-does not error -- it produces a complete, well-formed TTL describing different
-structures than the ones that were measured.
+numeric range and disagree about what each number means, so a lookup in the
+wrong table returns a name, not an error. These tests pin the per-protocol
+tables; tests/test_label_protocol_wiring.py checks that the protocol reaches
+the lookup and that the default protocol refuses ids outside its vocabulary.
 """
 import json
 from pathlib import Path

@@ -54,6 +54,39 @@ _UNLISTED = {
     632: "Cerebellar vermal lobules VIII - X",
 }
 
+#: Label ids accepted under the ``freesurfer`` protocol: the FreeSurfer aseg
+#: and cortical vocabulary that FreeSurfer-numbered ANTs segmentations emit.
+#: Most ids in the low range also have a FreeSurferColorLUT line, so without
+#: this set a Neuromorphometrics-numbered segmentation named with the default
+#: protocol gets well-formed, wrong names (59 -> Right-Substancia-Nigra) and
+#: fails only on the few ids whose name happens to lack a data element.
+#:
+#: Sources:
+#: - ``_ASEG_STATS_IDS``: the structures FreeSurfer's aseg.stats reports
+#:   (mri_segstats with ASegStatsLUT.txt, FreeSurfer 8.0.0).
+#: - ``_QUICK_TEMPLATE_IDS``: the non-cortical ids of the pre-fused
+#:   OASIS-TRT-20 joint-fusion map in OASIS-30 space
+#:   (OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz), which
+#:   ants-nidm ``--method quick`` warps to the subject. It adds the
+#:   cerebellum exterior (6, 45), basal forebrain (91, 92) and vermis
+#:   (630-632) labels.
+#: - ``_CORTICAL_IDS``: the 33 cortical parcels per hemisphere that
+#:   ants-cdes.json has data elements for (the DKT31 set plus frontal and
+#:   temporal pole); their numbering is the same in both protocols.
+_ASEG_STATS_IDS = frozenset({
+    4, 5, 7, 8, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 30, 31, 43,
+    44, 46, 47, 49, 50, 51, 52, 53, 54, 58, 60, 62, 63, 72, 77, 78, 79, 80,
+    81, 82, 85, 251, 252, 253, 254, 255,
+})
+_QUICK_TEMPLATE_IDS = frozenset({
+    4, 5, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 24, 26, 28, 30, 43, 44,
+    45, 46, 49, 50, 51, 52, 53, 54, 58, 60, 91, 92, 630, 631, 632,
+})
+_CORTICAL_IDS = frozenset(
+    hemi + parcel for hemi in (1000, 2000) for parcel in range(2, 36) if parcel != 4
+)
+FREESURFER_IDS = _ASEG_STATS_IDS | _QUICK_TEMPLATE_IDS | _CORTICAL_IDS
+
 _lut_cache = None
 _neuromorphometrics_cache = None
 
@@ -203,7 +236,17 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
         else:
             measures.append((f'{ants_cde[str(keytuple)]["id"]}', str(value)))
 
-    # iterate over columns in brain vols
+    if label_protocol == FREESURFER:
+        foreign = sorted({int(v) for v in ants_stats["Label"]} - FREESURFER_IDS)
+        if foreign:
+            raise ValueError(
+                f"Label ID(s) {', '.join(map(str, foreign))} are not in the FreeSurfer "
+                f"aseg/cortical vocabulary the default 'freesurfer' label protocol "
+                f"accepts. If the segmentation is numbered in another protocol, pass "
+                f"--label-protocol (choices: {', '.join(LABEL_PROTOCOLS)})."
+            )
+
+    # iterate over rows in label stats
     for row in ants_stats.iterrows():
         structure = None
         for key, val in row[1].items():
