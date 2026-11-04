@@ -1,5 +1,5 @@
 {
-  "count": 358,
+  "count": 359,
   "ANTSDKT(structure='Brain', hemi=None, measure='PearsonCorrelation', unit=None)": {
     "id": "000001",
     "label": "PearsonCorrelation (None)",
@@ -2954,5 +2954,13 @@
     "datumType": "http://uri.interlex.org/base/ilx_0738276",
     "hasUnit": "mm^3",
     "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-rh-temporalpole', hemi='Right', measure='SurfaceAreaInMillimetersSquared', unit='mm^2')": {
+    "id": "000359",
+    "structure_id": 2033,
+    "label": "ctx-rh-temporalpole SurfaceAreaInMillimetersSquared (mm^2)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^2",
+    "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
   }
 }

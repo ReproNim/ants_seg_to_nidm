@@ -4000,5 +4000,16 @@ ants:ants_000358 a ants:DataElement ;
     ants:structure "LABELVOL" ;
     ants:unit "mm^3" .
 
+ants:ants_000359 a ants:DataElement ;
+    rdfs:label "ctx-rh-temporalpole SurfaceAreaInMillimetersSquared (mm^2)" ;
+    nidm:datumType ilx:0738276 ;
+    nidm:hasLaterality "Right" ;
+    nidm:hasUnit "mm^2" ;
+    nidm:measureOf <http://purl.obolibrary.org/obo/PATO_0001323> ;
+    ants:measure "SurfaceAreaInMillimetersSquared" ;
+    ants:structure "ctx-rh-temporalpole" ;
+    ants:structure_id 2033 ;
+    ants:unit "mm^2" .
+
 ants:DataElement rdfs:subClassOf nidm:DataElement .
 
