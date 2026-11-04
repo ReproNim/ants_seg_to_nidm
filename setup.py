@@ -37,29 +37,20 @@ setup(
     long_description=long_description,
     author='David Keator',
     author_email='dbkeator@uci.edu',
-    url='https://github.com/dbkeator/ants_seg_to_nidm',
+    url='https://github.com/ReproNim/ants_seg_to_nidm',
     packages=PACKAGES,
     install_requires=[
         'numpy',
-        # Kept in lockstep with the consuming BIDSapp's top-level
-        # requirements.txt. The old 'pynidm==4.2.4' here made pip warn
-        # ("ants-seg-to-nidm 0.0.1 requires pynidm==4.2.4, but you have pynidm
-        # 4.5.0") on every container build and would have pulled 4.2.4 back in
-        # for anyone installing this package on its own.
-        'pynidm==4.5.0',
+        # The converter runs on PyNIDM 4.5 and 5 (ants_seg_to_nidm/_pynidm.py
+        # picks the API). Applications that install it pin the exact version.
+        'pynidm>=4.5.0,<6',
         'pandas',
         # prov 3.0.0 moved NetworkX graph interop to an optional extra that
         # PyNIDM 4.x's nidm.experiment imports; the converter also uses
         # prov.model directly, which PyNIDM 5 no longer pulls in.
         'prov[graph]',
-        # Deliberately loose, and it must stay that way: pynidm 4.5.0 declares
-        # rdflib~=6.3.2, so pinning rdflib>=7 *here* makes this package's own
-        # metadata self-contradictory and `pip install -e .` dies with
-        # ResolutionImpossible. The runtime actually wants rdflib 7.x (oxrdflib
-        # needs <8), and the consuming container gets there with an explicit
-        # `pip install --upgrade 'rdflib>=7.0.0,<8'` step *after* this install --
-        # a deliberate override, which pip reports as a warning rather than an
-        # error. Same arrangement as the sibling freesurfer app's segstats_jsonld.
+        # Loose on purpose: PyNIDM 4.5.0 declares rdflib~=6.3.2 and PyNIDM 5
+        # declares rdflib>=6.3.2,<8, so PyNIDM chooses the rdflib version.
         'rdflib>=6.0',
     ], # Add requirements as necessary
     include_package_data=True,

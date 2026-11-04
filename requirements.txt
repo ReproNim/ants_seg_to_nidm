@@ -1,13 +1,9 @@
-# NOTE: the ants_bidsapp container build does NOT read this file -- it installs
-# this package with `pip install -e .` and then applies the pins in the app's
-# top-level requirements.txt (pynidm==4.5.0, oxrdflib, prov[graph], rdflib>=7,<8).
-# Kept in sync to avoid misleading anyone debugging versions.
-pynidm==4.5.0
+# Development and test environment. setup.py accepts PyNIDM 4.5 and 5; this
+# file pins the version the tests are run against.
+pynidm==5.0.0
 pandas
 numpy
 prov[graph]
-# Loose on purpose -- see the note in setup.py. pynidm 4.5.0 declares
-# rdflib~=6.3.2, so pinning >=7 here contradicts it; the container upgrades
-# rdflib to 7.x as an explicit step after installing this package.
+# Loose on purpose -- see the note in setup.py.
 rdflib>=6.0
 xlrd
