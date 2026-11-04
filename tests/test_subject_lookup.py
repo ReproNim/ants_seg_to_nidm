@@ -212,6 +212,30 @@ def test_cli_miss_beside_any_node_with_a_subject_id_fails_even_with_forcenidm(
     assert "which has subject IDs: 51456" in capsys.readouterr().err
 
 
+def _failing_lookup_input(case):
+    if case == "miss":
+        graph, _ = _graph_with_subjects("51456")
+    elif case == "several":
+        graph, _ = _graph_with_subjects("50002", "sub-0050002")
+    else:  # no subjects, no --forcenidm
+        graph = Graph()
+        graph.add((URIRef("http://example.org/project"), RDF.type, Constants.NIDM["Project"]))
+    return graph
+
+
+@pytest.mark.parametrize("case", ["miss", "several", "no-subjects"])
+def test_a_failed_lookup_leaves_the_graph_unchanged(case):
+    """A library caller that catches SubjectLookupError and then serialises
+    the graph must not find stray activities or descriptions in it."""
+    graph = _failing_lookup_input(case)
+    before = set(graph)
+
+    with pytest.raises(SubjectLookupError):
+        add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=case != "no-subjects")
+
+    assert set(graph) == before
+
+
 def _write_input_nidm(path, *ids):
     graph, _ = _graph_with_subjects(*ids, datatype=None)
     graph.serialize(destination=str(path), format="turtle")
