@@ -32,3 +32,36 @@ def cde_file_copy(tmp_path, monkeypatch):
     shutil.copyfile(TRACKED_CDE_FILE, copy)
     monkeypatch.setattr(antsutils, "cde_file", copy)
     return copy
+
+
+EXAMPLES_DIR = Path(__file__).resolve().parents[1] / "examples"
+
+
+@pytest.fixture
+def stats_files(tmp_path):
+    """A minimal labelstats / brainvols / image triple for the -f option.
+
+    Label 17 is Left-Hippocampus in the FreeSurfer aseg numbering.
+    """
+    labelstats = tmp_path / "antslabelstats.csv"
+    labelstats.write_text("Label,VolumeInVoxels\n17,1000\n")
+    brainvols = tmp_path / "antsbrainvols.csv"
+    brainvols.write_text("BVOL,LABELVOL\n1677000.0,904000.0\n")
+    image = EXAMPLES_DIR / "antsBrainSegmentation.nii.gz"
+    return f"{labelstats},{brainvols},{image}"
+
+
+def run_main(monkeypatch, argv):
+    """Run the antsegstats2nidm entry point with argv; return its exit code."""
+    import sys
+    from ants_seg_to_nidm import ants_seg_to_nidm as cli
+
+    monkeypatch.setattr(sys, "argv", ["antsegstats2nidm", *argv])
+    try:
+        cli.main()
+    except SystemExit as exc:
+        code = exc.code
+        if code is None:
+            return 0
+        return code if isinstance(code, int) else 1
+    return 0
