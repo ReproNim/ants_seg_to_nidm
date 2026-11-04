@@ -202,6 +202,29 @@ def _freesurfer_refusal(foreign):
     return message
 
 
+def neuromorphometrics_ids():
+    """Label ids accepted under the ``neuromorphometrics`` protocol: the
+    subcortical ids of its table and the cortical parcels (numbered the same
+    in both protocols, named from the FreeSurfer table)."""
+    return frozenset(_neuromorphometrics_labels()) | _CORTICAL_IDS
+
+
+def _neuromorphometrics_refusal(foreign):
+    message = (f"Label ID(s) {_ids(foreign)} are not among the ids the 'neuromorphometrics' label "
+               f"protocol accepts (the 37 subcortical ids of the OASIS-TRT-20 DKT31_CMA atlases, "
+               f"as ants-nidm --method fusion emits, and cortical parcels 1002-1035/2002-2035 "
+               f"except 1004/2004).")
+    fs_named = foreign & FREESURFER_IDS
+    if fs_named:
+        message += (f" {_ids(fs_named)}: the default 'freesurfer' protocol accepts them (as "
+                    f"ants-nidm --method quick emits); if the segmentation follows FreeSurfer "
+                    f"numbering, omit --label-protocol neuromorphometrics.")
+    neither = foreign - fs_named
+    if neither:
+        message += f" {_ids(neither)} are accepted under neither protocol."
+    return message
+
+
 def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=True,
                     collect_missing=False, label_protocol=FREESURFER):
     """
@@ -217,6 +240,8 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
     :param label_protocol: which numbering the label ids follow -- "freesurfer"
         (the default) or "neuromorphometrics". Naming a segmentation with the
         wrong protocol yields a well-formed file describing the wrong structures.
+        Label ids the protocol does not accept raise ValueError, also with
+        collect_missing.
     :return: measures is a list of dictionaries as defined above
     """
 
@@ -266,10 +291,17 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
         else:
             measures.append((f'{ants_cde[str(keytuple)]["id"]}', str(value)))
 
+    # A protocol violation is an error also under --collect-missing: skipping
+    # the rows would leave the overlapping ids named with the wrong table.
+    label_ids = {int(v) for v in ants_stats["Label"]}
     if label_protocol == FREESURFER:
-        foreign = {int(v) for v in ants_stats["Label"]} - FREESURFER_IDS
+        foreign = label_ids - FREESURFER_IDS
         if foreign:
             raise ValueError(_freesurfer_refusal(foreign))
+    else:
+        foreign = label_ids - neuromorphometrics_ids()
+        if foreign:
+            raise ValueError(_neuromorphometrics_refusal(foreign))
 
     # iterate over rows in label stats
     for row in ants_stats.iterrows():

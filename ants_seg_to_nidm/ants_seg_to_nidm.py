@@ -379,21 +379,19 @@ def main():
     parser.add_argument('--collect-missing', action='store_true', required=False,
                         help='Report every label and brain volume column that has no data element, instead of '
                              'stopping at the first, and exit non-zero if there are any. Label ids '
-                             'with no name under the label protocol are skipped with a warning; ids '
-                             'outside the freesurfer protocol\'s vocabulary still fail.')
+                             'the label protocol does not accept still fail at once.')
     parser.add_argument('--label-protocol', dest='label_protocol', required=False,
                         choices=LABEL_PROTOCOLS, default=FREESURFER,
                         help='Numbering the segmentation label ids follow. "freesurfer" (default) '
                              'accepts the FreeSurfer aseg.stats structure ids, the subcortical ids of '
                              'the OASIS-30 template label map ants-nidm --method quick uses, and the '
-                             'cortical parcels 1002-1035/2002-2035 except 1004/2004; any other id is an '
-                             'error. Of the accepted aseg.stats ids, 8, 77-82 and 251-255 have no data '
-                             'elements and still fail. '
-                             '"neuromorphometrics" names the 37 subcortical ids of the OASIS-TRT-20 '
+                             'cortical parcels 1002-1035/2002-2035 except 1004/2004. Of the accepted '
+                             'aseg.stats ids, 8, 77-82 and 251-255 have no data elements and still fail. '
+                             '"neuromorphometrics" accepts the 37 subcortical ids of the OASIS-TRT-20 '
                              'DKT31_CMA atlases (ants-nidm --method fusion), which follow the '
-                             'Neuromorphometrics numbering, and names ids of 1000 and above (cortical '
-                             'numbering, shared by both) from the FreeSurfer table; other '
-                             'Neuromorphometrics/BrainCOLOR ids below 1000 are not named. The two share a '
+                             'Neuromorphometrics numbering, and the same cortical parcels (numbered '
+                             'alike in both, named from the FreeSurfer table). Any other id is an error '
+                             'under either protocol, also with --collect-missing. The two share a '
                              'numeric range and disagree about what each number means.')
     parser.add_argument('-acq_filename', '--acq_filename', dest='acq_filename', nargs='+',
                         required=False, default=None,

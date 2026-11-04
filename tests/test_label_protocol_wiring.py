@@ -166,3 +166,51 @@ def test_refusal_names_a_remedy_only_for_ids_it_fits(tmp_path):
             "--label-protocol neuromorphometrics names them") in message
     assert "2, 3, 42 are accepted under neither protocol" in message
     assert " 17" not in message
+
+
+# A sample of what ants-nidm --method quick emits (FreeSurfer aseg ids). 4, 49
+# and 60 are also Neuromorphometrics ids, meaning other structures there; 5, 10,
+# 17, 53 are not in the Neuromorphometrics table at all.
+QUICK_STYLE = [4, 5, 10, 17, 49, 53, 60, 1002, 2035]
+
+
+@pytest.mark.parametrize("collect_missing", [False, True], ids=["plain", "collect-missing"])
+def test_neuromorphometrics_refuses_ids_outside_its_table(tmp_path, collect_missing):
+    """Real quick stats named with --label-protocol neuromorphometrics
+    --collect-missing used to exit 0 with the aseg-only rows skipped and ten
+    structures misnamed."""
+    labelstats, brainvols = _write_stats(tmp_path, QUICK_STYLE)
+
+    with pytest.raises(ValueError) as err:
+        read_ants_stats(labelstats, brainvols, IMAGE, force_error=not collect_missing,
+                        collect_missing=collect_missing, label_protocol=NEUROMORPHOMETRICS)
+
+    message = " ".join(str(err.value).split())
+    assert "Label ID(s) 5, 10, 17, 53 are not among the ids the 'neuromorphometrics' label protocol accepts" in message
+    assert "the default 'freesurfer' protocol accepts them" in message
+
+
+def test_neuromorphometrics_accepts_its_table_and_the_cortical_parcels(tmp_path):
+    ids = sorted(NM_TABLE) + CORTICAL
+    labelstats, brainvols = _write_stats(tmp_path, ids)
+    measures = read_ants_stats(labelstats, brainvols, IMAGE, label_protocol=NEUROMORPHOMETRICS)
+    assert len(measures) == 2 + len(ids)
+
+
+def test_cli_neuromorphometrics_with_collect_missing_refuses_quick_ids(tmp_path, monkeypatch):
+    out = tmp_path / "out" / "nidm.ttl"
+    with pytest.raises(ValueError, match="'neuromorphometrics' label protocol accepts"):
+        run_main(monkeypatch, ["-f", _stats_arg(tmp_path, QUICK_STYLE), "-subjid", "sub-01",
+                               "-o", str(out), "--label-protocol", NEUROMORPHOMETRICS,
+                               "--collect-missing"])
+    assert not out.exists()
+
+
+def test_help_says_both_protocols_refuse_ids_they_do_not_accept(monkeypatch, capsys):
+    monkeypatch.setattr("sys.argv", ["antsegstats2nidm", "-h"])
+    from ants_seg_to_nidm import ants_seg_to_nidm as cli
+    with pytest.raises(SystemExit):
+        cli.main()
+    text = " ".join(capsys.readouterr().out.split())
+    assert "Any other id is an error under either protocol, also with --collect-missing" in text
+    assert "ids outside the freesurfer protocol's vocabulary" not in text
