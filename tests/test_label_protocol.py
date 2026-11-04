@@ -91,10 +91,10 @@ def test_unknown_protocol_is_rejected():
 def test_lut_lookup_is_exact_not_prefix():
     """The old scan used line.startswith(str(id)), so an id with no line of
     its own could pick up a longer id's name."""
-    # 1 has its own line; 19 does not appear as a bare id in most LUTs but must
-    # never borrow the name of 190-something.
     name_1 = get_id_to_struct(1)
     assert name_1 is not None and not name_1.startswith("ctx")
+    # 90 has no LUT line; the prefix scan returned ctx-lh-prefrontal (9000's line).
+    assert get_id_to_struct(90) is None
     for absent in (9999999,):
         assert get_id_to_struct(absent) is None
 
