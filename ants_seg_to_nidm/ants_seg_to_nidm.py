@@ -139,29 +139,42 @@ def _owns_anatomical_acquisition(graph, subject):
     return bool(_anatomical_acquisitions(graph, subject))
 
 
-def find_subject_agent(nidmdoc, subjid, forceagent=False):
-    """Return the input agent whose ndar:src_subject_id is subjid.
+def find_subject(graph, subject_id, forceagent=False, created_agents=()):
+    """Return the node in graph that subject_id names: the subject the stats
+    belong to. This is the lookup add_seg_data makes; it is public so that a
+    caller (a BIDS app) can run the same rule on the input NIDM before
+    computing anything. It never changes graph.
 
-    Every node carrying ndar:src_subject_id, under the https:// or the
-    http:// NDAR IRI and whatever its rdf:type, is a subject, so a
-    participant typed only nidm:Subject, or not typed, is never mistaken for
-    an input without subjects. Its ids are compared with subjid after
-    normalise_subject_id() on both sides.
-    Exactly one match is returned. Of several matches (some inputs hold two
-    person nodes with the same id, one owning the MRI acquisitions and one
-    only an assessment), the one that owns an anatomical MRI acquisition is
-    returned; if none or more than one does, SubjectLookupError is raised. No match raises
-    when the input has subject agents, with or without forceagent, because
-    attaching the stats to a new agent would detach them from that subject's
-    other data. With no subject agents in the input, forceagent returns None
-    (the caller creates the agent) and otherwise raises.
+    A subject is any node carrying ndar:src_subject_id under the https:// or
+    the http:// NDAR IRI, whatever its rdf:type, so a participant typed only
+    nidm:Subject, or not typed, is never mistaken for an input without
+    subjects. Ids are compared after normalise_subject_id() on both sides. A
+    node with several ids counts once.
+
+    - One match: returned.
+    - Several matches (some inputs hold two person nodes with the same id, one
+      owning the MRI acquisitions and one only an assessment): the one match
+      that owns an anatomical MRI acquisition is returned; if none or more than
+      one does, SubjectLookupError.
+    - No match while graph has subjects: SubjectLookupError whatever
+      forceagent says, since attaching the stats to a new agent would detach
+      them from that subject's other data.
+    - No subjects at all: None with forceagent (the caller creates an agent
+      with the id), SubjectLookupError without it.
+
+    These are the rules of segstats_jsonld's find_subject, so both converters
+    find the same subject.
+
+    :param created_agents: agents the caller created earlier in the same run;
+        they are found when they match, and do not count as input subjects
+    :raises SubjectLookupError: when the subject cannot be identified
     """
     stored = [
         (agent, str(sid))
         for predicate in SUBJECT_ID_PREDICATES
-        for agent, sid in nidmdoc.subject_objects(predicate)
+        for agent, sid in graph.subject_objects(predicate)
     ]
-    wanted = normalise_subject_id(subjid)
+    wanted = normalise_subject_id(subject_id)
     matches = {}
     for agent, sid in stored:
         if normalise_subject_id(sid) == wanted:
@@ -170,33 +183,34 @@ def find_subject_agent(nidmdoc, subjid, forceagent=False):
     if len(matches) == 1:
         (agent, sids), = matches.items()
         print('Found subject ID %s as %s in NIDM file (agent: %s)'
-              % (subjid, ", ".join(sorted(sids)), agent))
+              % (subject_id, ", ".join(sorted(sids)), agent))
         return agent
     if len(matches) > 1:
         found = ", ".join("%s (%s)" % (agent, ", ".join(sorted(sids)))
                           for agent, sids in sorted(matches.items(), key=lambda kv: str(kv[0])))
-        owners = sorted((agent for agent in matches if _owns_anatomical_acquisition(nidmdoc, agent)),
+        owners = sorted((agent for agent in matches if _owns_anatomical_acquisition(graph, agent)),
                         key=str)
         if len(owners) != 1:
             owning = "none of them owns" if not owners else "%d of them own" % len(owners)
             raise SubjectLookupError(
                 "Subject ID %s matches %d agents in the input NIDM: %s; %s an anatomical MRI "
                 "acquisition, so the stats cannot be attached to one of them; no output written"
-                % (subjid, len(matches), found, owning)
+                % (subject_id, len(matches), found, owning)
             )
         print('Subject ID %s matches %d agents in the input NIDM (%s); using %s, the only one '
-              'that owns an anatomical MRI acquisition' % (subjid, len(matches), found, owners[0]))
+              'that owns an anatomical MRI acquisition' % (subject_id, len(matches), found, owners[0]))
         return owners[0]
-    if stored:
+    input_ids = sorted({sid for agent, sid in stored if agent not in created_agents})
+    if input_ids:
         raise SubjectLookupError(
             "Subject ID %s was not found in the input NIDM, which has subject IDs: %s; "
-            "no output written" % (subjid, ", ".join(sorted({sid for _, sid in stored})))
+            "no output written" % (subject_id, ", ".join(input_ids))
         )
     if forceagent:
         return None
     raise SubjectLookupError(
         "Subject ID %s was not found in the input NIDM, which has no subject agents; "
-        "no output written (--forcenidm adds a new agent for it)" % subjid
+        "no output written (--forcenidm adds a new agent for it)" % subject_id
     )
 
 
@@ -259,7 +273,7 @@ def add_seg_data(nidmdoc,subjid,stats_entity_id, add_to_nidm=False, forceagent=F
     # Identify the subject before the graph is touched: a lookup error leaves
     # nidmdoc as it was.
     if add_to_nidm:
-        participant_agent = find_subject_agent(nidmdoc, subjid, forceagent)
+        participant_agent = find_subject(nidmdoc, subjid, forceagent)
 
     #for each of the header items create a dictionary where namespaces are freesurfer
     niiri=Namespace("http://iri.nidash.org/")
