@@ -286,3 +286,63 @@ def test_cli_attaches_to_the_input_subject(tmp_path, monkeypatch, stats_files):
     assert code == 0
     result = Graph().parse(str(out), format="turtle")
     assert set(result.subjects(SUBJECT_ID, None)) == {URIRef("http://example.org/agent/0")}
+
+
+# Several nodes with the same subject id: some delivered inputs (ADHD200 NYU,
+# Peking_1, Pittsburgh) hold two prov:Agent+prov:Person nodes per subject, one
+# owning the anatomical MRI acquisition and one associated only with an
+# assessment. The node that owns the acquisition is the one the stats belong to.
+
+def _add_assessment(graph, agent, name):
+    """An instrument-based assessment, which is not an anatomical acquisition."""
+    assessment = URIRef(f"http://example.org/assessment/{name}")
+    activity = URIRef(f"http://example.org/activity/{name}")
+    graph.add((assessment, RDF.type, Constants.NIDM["AcquisitionObject"]))
+    graph.add((assessment, RDF.type, Constants.NIDM["AssessmentObject"]))
+    graph.add((assessment, Constants.PROV["wasGeneratedBy"], activity))
+    assoc = BNode()
+    graph.add((activity, Constants.PROV["qualifiedAssociation"], assoc))
+    graph.add((assoc, Constants.PROV["agent"], agent))
+
+
+def _two_nodes_with_one_id(owners):
+    graph = Graph()
+    nodes = []
+    for name in ("first", "second"):
+        node = URIRef(f"http://example.org/agent/{name}")
+        graph.add((node, RDF.type, Constants.PROV["Agent"]))
+        graph.add((node, RDF.type, Constants.PROV["Person"]))
+        graph.add((node, SUBJECT_ID, Literal("0050002", datatype=XSD.string)))
+        _add_assessment(graph, node, f"assessment-{name}")
+        nodes.append(node)
+    acquisitions = {nodes[n]: _add_acquisition(graph, nodes[n], f"t1w-{n}") for n in owners}
+    return graph, nodes, acquisitions
+
+
+@pytest.mark.parametrize("owner", [0, 1], ids=["first-owns", "second-owns"])
+def test_of_several_matches_the_one_owning_the_anatomical_acquisition_is_chosen(owner, capsys):
+    graph, nodes, acquisitions = _two_nodes_with_one_id({owner})
+
+    add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=True)
+
+    chosen = nodes[owner]
+    assert _subject_agent_of_stats(graph) == {chosen}
+    assert (None, Constants.PROV["used"], acquisitions[chosen]) in graph
+    assert set(graph.subjects(SUBJECT_ID, None)) == set(nodes)
+    out = capsys.readouterr().out
+    assert str(chosen) in out and "anatomical" in out
+    assert str(nodes[1 - owner]) in out
+
+
+@pytest.mark.parametrize("owners", [set(), {0, 1}], ids=["neither-owns", "both-own"])
+def test_several_matches_fail_unless_exactly_one_owns_an_anatomical_acquisition(owners):
+    graph, nodes, _ = _two_nodes_with_one_id(owners)
+    before = set(graph)
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=True)
+
+    message = str(err.value)
+    assert str(nodes[0]) in message and str(nodes[1]) in message
+    assert "anatomical" in message and "no output written" in message
+    assert set(graph) == before
