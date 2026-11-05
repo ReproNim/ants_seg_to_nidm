@@ -37,12 +37,23 @@ setup(
     long_description=long_description,
     author='David Keator',
     author_email='dbkeator@uci.edu',
-    url='https://github.com/dbkeator/ants_seg_to_nidm',
+    url='https://github.com/ReproNim/ants_seg_to_nidm',
     packages=PACKAGES,
     install_requires=[
+        'nibabel',
         'numpy',
-	'pynidm',
+        # The converter runs on PyNIDM 4.5 and 5 (ants_seg_to_nidm/_pynidm.py
+        # picks the API). Applications that install it pin the exact version.
+        'pynidm>=4.5.0,<6',
         'pandas',
+        # prov 3.0.0 moved NetworkX graph interop to an optional extra that
+        # PyNIDM 4.x's nidm.experiment imports; the converter also uses
+        # prov.model directly, which PyNIDM 5 no longer pulls in.
+        'prov[graph]',
+        # Loose on purpose: PyNIDM 4.5.0 declares rdflib~=6.3.2 and PyNIDM 5
+        # declares rdflib>=6.3.2,<8, so PyNIDM chooses the rdflib version.
+        'rdflib>=6.0',
+        'requests',
     ], # Add requirements as necessary
     include_package_data=True,
     extras_require={
@@ -61,4 +72,3 @@ setup(
         "Operating System :: OS Independent",
     ], # Change if necessary
 )
-

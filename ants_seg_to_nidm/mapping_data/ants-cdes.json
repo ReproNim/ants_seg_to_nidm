@@ -1,5 +1,5 @@
 {
-  "count": 347,
+  "count": 359,
   "ANTSDKT(structure='Brain', hemi=None, measure='PearsonCorrelation', unit=None)": {
     "id": "000001",
     "label": "PearsonCorrelation (None)",
@@ -7,7 +7,7 @@
   },
   "ANTSDKT(structure='BVOL', hemi=None, measure='Volume', unit='mm^3')": {
     "id": "000002",
-    "label": "BVOL (mm^3)",
+    "label": "BVOL: brain volume from the brain extraction mask (mm^3)",
     "isAbout": "http://purl.obolibrary.org/obo/UBERON_0000955",
     "datumType": "http://uri.interlex.org/base/ilx_0738276",
     "hasUnit": "mm^3",
@@ -389,6 +389,15 @@
     "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001359",
     "datumType": "http://uri.interlex.org/base/ilx_0102597",
     "hasUnit": "voxel",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='CSF', hemi=None, measure='Volume', unit='mm^3')": {
+    "id": "000348",
+    "structure_id": 24,
+    "label": "CSF Volume (mm^3)",
+    "isAbout": "http://purl.obolibrary.org/obo/UBERON_0001359",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^3",
     "measureOf": "http://uri.interlex.org/base/ilx_0112559"
   },
   "ANTSDKT(structure='CSFVOL', hemi=None, measure='Volume', unit='mm^3')": {
@@ -2866,5 +2875,92 @@
     "datumType": "http://uri.interlex.org/base/ilx_0738276",
     "hasUnit": "mm^3",
     "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-lh-frontalpole', hemi='Left', measure='VolumeInVoxels', unit='voxel')": {
+    "id": "000349",
+    "structure_id": 1032,
+    "label": "ctx-lh-frontalpole VolumeInVoxels (voxel)",
+    "datumType": "http://uri.interlex.org/base/ilx_0102597",
+    "hasUnit": "voxel",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-lh-frontalpole', hemi='Left', measure='Volume', unit='mm^3')": {
+    "id": "000350",
+    "structure_id": 1032,
+    "label": "ctx-lh-frontalpole Volume (mm^3)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^3",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-lh-frontalpole', hemi='Left', measure='SurfaceAreaInMillimetersSquared', unit='mm^2')": {
+    "id": "000351",
+    "structure_id": 1032,
+    "label": "ctx-lh-frontalpole SurfaceAreaInMillimetersSquared (mm^2)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^2",
+    "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
+  },
+  "ANTSDKT(structure='ctx-lh-temporalpole', hemi='Left', measure='VolumeInVoxels', unit='voxel')": {
+    "id": "000352",
+    "structure_id": 1033,
+    "label": "ctx-lh-temporalpole VolumeInVoxels (voxel)",
+    "datumType": "http://uri.interlex.org/base/ilx_0102597",
+    "hasUnit": "voxel",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-lh-temporalpole', hemi='Left', measure='Volume', unit='mm^3')": {
+    "id": "000353",
+    "structure_id": 1033,
+    "label": "ctx-lh-temporalpole Volume (mm^3)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^3",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-lh-temporalpole', hemi='Left', measure='SurfaceAreaInMillimetersSquared', unit='mm^2')": {
+    "id": "000354",
+    "structure_id": 1033,
+    "label": "ctx-lh-temporalpole SurfaceAreaInMillimetersSquared (mm^2)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^2",
+    "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
+  },
+  "ANTSDKT(structure='ctx-rh-frontalpole', hemi='Right', measure='VolumeInVoxels', unit='voxel')": {
+    "id": "000355",
+    "structure_id": 2032,
+    "label": "ctx-rh-frontalpole VolumeInVoxels (voxel)",
+    "datumType": "http://uri.interlex.org/base/ilx_0102597",
+    "hasUnit": "voxel",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-rh-frontalpole', hemi='Right', measure='Volume', unit='mm^3')": {
+    "id": "000356",
+    "structure_id": 2032,
+    "label": "ctx-rh-frontalpole Volume (mm^3)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^3",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-rh-frontalpole', hemi='Right', measure='SurfaceAreaInMillimetersSquared', unit='mm^2')": {
+    "id": "000357",
+    "structure_id": 2032,
+    "label": "ctx-rh-frontalpole SurfaceAreaInMillimetersSquared (mm^2)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^2",
+    "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
+  },
+  "ANTSDKT(structure='LABELVOL', hemi=None, measure='Volume', unit='mm^3')": {
+    "id": "000358",
+    "label": "LABELVOL: sum of the labelled structure volumes, not a brain volume (mm^3)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^3",
+    "measureOf": "http://uri.interlex.org/base/ilx_0112559"
+  },
+  "ANTSDKT(structure='ctx-rh-temporalpole', hemi='Right', measure='SurfaceAreaInMillimetersSquared', unit='mm^2')": {
+    "id": "000359",
+    "structure_id": 2033,
+    "label": "ctx-rh-temporalpole SurfaceAreaInMillimetersSquared (mm^2)",
+    "datumType": "http://uri.interlex.org/base/ilx_0738276",
+    "hasUnit": "mm^2",
+    "measureOf": "http://purl.obolibrary.org/obo/PATO_0001323"
   }
 }

@@ -236,6 +236,12 @@
       ],
       "isAbout": "http://purl.obolibrary.org/obo/UBERON_0006091"
     },
+    "LABELVOL": {
+      "antskey": [
+        "LABELVOL"
+      ],
+      "isAbout": null
+    },
     "Lateral-Ventricle": {
       "antskey": [
         "Left-Lateral-Ventricle",
