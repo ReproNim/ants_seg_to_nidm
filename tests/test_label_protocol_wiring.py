@@ -230,3 +230,37 @@ def test_corpus_callosum_parcels_are_refused(tmp_path, protocol, label_id):
     message = str(err.value)
     assert message.startswith(f"Label ID(s) {label_id} are not among the ids the '{protocol}'")
     assert f"{label_id} are accepted under neither protocol" in message
+
+
+@pytest.mark.parametrize("protocol", ["Freesurfer", "fusion", ""])
+@pytest.mark.parametrize("ids", [QUICK_STYLE, sorted(NM_TABLE) + CORTICAL], ids=["quick-ids", "fusion-ids"])
+def test_an_unknown_protocol_is_refused_by_name(tmp_path, protocol, ids):
+    """Library callers only (the CLI restricts the choice): a typo used to be
+    checked as 'neuromorphometrics' and refused under that protocol's name."""
+    labelstats, brainvols = _write_stats(tmp_path, ids)
+
+    with pytest.raises(ValueError) as err:
+        read_ants_stats(labelstats, brainvols, IMAGE, label_protocol=protocol)
+
+    message = str(err.value)
+    assert message.startswith(f"unknown label protocol {protocol!r}; expected one of")
+    assert "'neuromorphometrics' label protocol accepts" not in message
+
+
+def test_neuromorphometrics_refusal_offers_the_default_only_for_ids_quick_emits(tmp_path):
+    """8, 77-82 and 251-255 are FreeSurfer aseg.stats ids that ants-nidm --method
+    quick does not emit (and that fail under freesurfer for lack of data
+    elements), so the refusal must not present them as quick's ids."""
+    labelstats, brainvols = _write_stats(tmp_path, [59, 17, 53, 8, 77, 251, 999])
+
+    with pytest.raises(ValueError) as err:
+        read_ants_stats(labelstats, brainvols, IMAGE, label_protocol=NEUROMORPHOMETRICS)
+
+    message = " ".join(str(err.value).split())
+    assert message.startswith("Label ID(s) 8, 17, 53, 77, 251, 999 are not among the ids the "
+                              "'neuromorphometrics' label protocol accepts")
+    assert ("17, 53: the default 'freesurfer' protocol accepts them, as ants-nidm --method quick "
+            "emits them; if the segmentation follows FreeSurfer numbering, omit "
+            "--label-protocol neuromorphometrics.") in message
+    assert "8, 77, 251 are FreeSurfer aseg.stats ids that neither ants-nidm method emits." in message
+    assert "999 are accepted under neither protocol" in message

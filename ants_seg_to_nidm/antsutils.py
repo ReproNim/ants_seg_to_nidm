@@ -214,12 +214,16 @@ def _neuromorphometrics_refusal(foreign):
                f"protocol accepts (the 37 subcortical ids of the OASIS-TRT-20 DKT31_CMA atlases, "
                f"as ants-nidm --method fusion emits, and cortical parcels 1002-1035/2002-2035 "
                f"except 1004/2004).")
-    fs_named = foreign & FREESURFER_IDS
-    if fs_named:
-        message += (f" {_ids(fs_named)}: the default 'freesurfer' protocol accepts them (as "
-                    f"ants-nidm --method quick emits); if the segmentation follows FreeSurfer "
+    quick_named = foreign & (_QUICK_TEMPLATE_IDS | _CORTICAL_IDS)
+    if quick_named:
+        message += (f" {_ids(quick_named)}: the default 'freesurfer' protocol accepts them, as "
+                    f"ants-nidm --method quick emits them; if the segmentation follows FreeSurfer "
                     f"numbering, omit --label-protocol neuromorphometrics.")
-    neither = foreign - fs_named
+    aseg_only = (foreign & FREESURFER_IDS) - quick_named
+    if aseg_only:
+        message += (f" {_ids(aseg_only)} are FreeSurfer aseg.stats ids that neither ants-nidm "
+                    f"method emits.")
+    neither = foreign - FREESURFER_IDS
     if neither:
         message += f" {_ids(neither)} are accepted under neither protocol."
     return message
@@ -241,9 +245,14 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
         (the default) or "neuromorphometrics". Naming a segmentation with the
         wrong protocol yields a well-formed file describing the wrong structures.
         Label ids the protocol does not accept raise ValueError, also with
-        collect_missing.
+        collect_missing; so does any other label_protocol value.
     :return: measures is a list of dictionaries as defined above
     """
+
+    if label_protocol not in LABEL_PROTOCOLS:
+        raise ValueError(
+            f"unknown label protocol {label_protocol!r}; expected one of {LABEL_PROTOCOLS}"
+        )
 
     # fs_lookup_table = loadfreesurferlookuptable(freesurfer_lookup_table)
 
@@ -298,7 +307,7 @@ def read_ants_stats(ants_stats_file, ants_brainvols_file, mri_file, force_error=
         foreign = label_ids - FREESURFER_IDS
         if foreign:
             raise ValueError(_freesurfer_refusal(foreign))
-    else:
+    elif label_protocol == NEUROMORPHOMETRICS:
         foreign = label_ids - neuromorphometrics_ids()
         if foreign:
             raise ValueError(_neuromorphometrics_refusal(foreign))
