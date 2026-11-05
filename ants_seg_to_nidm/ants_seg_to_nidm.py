@@ -152,10 +152,14 @@ def find_subject(graph, subject_id, forceagent=False, created_agents=()):
     node with several ids counts once.
 
     - One match: returned.
-    - Several matches (some inputs hold two person nodes with the same id, one
-      owning the MRI acquisitions and one only an assessment): the one match
-      that owns an anatomical MRI acquisition is returned; if none or more than
-      one does, SubjectLookupError.
+    - Several matches that all store the same id, character for character
+      (some inputs hold two person nodes for one participant, one owning the
+      MRI acquisitions and one only an assessment): the one match that owns an
+      anatomical MRI acquisition is returned; if none or more than one does,
+      SubjectLookupError naming the owners.
+    - Several matches whose stored ids differ (they match only after
+      normalisation, as "sub-01" and "001" do, and may be different
+      participants): SubjectLookupError.
     - No match while graph has subjects: SubjectLookupError whatever
       forceagent says, since attaching the stats to a new agent would detach
       them from that subject's other data.
@@ -188,14 +192,23 @@ def find_subject(graph, subject_id, forceagent=False, created_agents=()):
     if len(matches) > 1:
         found = ", ".join("%s (%s)" % (agent, ", ".join(sorted(sids)))
                           for agent, sids in sorted(matches.items(), key=lambda kv: str(kv[0])))
+        matched_ids = sorted({sid for sids in matches.values() for sid in sids})
+        if len(matched_ids) > 1:
+            raise SubjectLookupError(
+                "Subject ID %s matches %d agents in the input NIDM: %s; their stored subject IDs "
+                "differ (%s), so they may be different participants and the stats cannot be "
+                "attached to one of them; no output written"
+                % (subject_id, len(matches), found, ", ".join(matched_ids))
+            )
         owners = sorted((agent for agent in matches if _owns_anatomical_acquisition(graph, agent)),
                         key=str)
         if len(owners) != 1:
             owning = "none of them owns" if not owners else "%d of them own" % len(owners)
+            which = " (%s)" % ", ".join(str(agent) for agent in owners) if owners else ""
             raise SubjectLookupError(
                 "Subject ID %s matches %d agents in the input NIDM: %s; %s an anatomical MRI "
-                "acquisition, so the stats cannot be attached to one of them; no output written"
-                % (subject_id, len(matches), found, owning)
+                "acquisition%s, so the stats cannot be attached to one of them; no output written"
+                % (subject_id, len(matches), found, owning, which)
             )
         print('Subject ID %s matches %d agents in the input NIDM (%s); using %s, the only one '
               'that owns an anatomical MRI acquisition' % (subject_id, len(matches), found, owners[0]))

@@ -42,13 +42,13 @@ def _graph_with_subjects(*ids, datatype=XSD.string):
     return graph, agents
 
 
-def _add_acquisition(graph, agent, name):
+def _add_acquisition(graph, agent, name, usage="Anatomical"):
     acquisition = URIRef(f"http://example.org/acquisition/{name}")
     activity = URIRef(f"http://example.org/activity/{name}")
     graph.add((acquisition, RDF.type, Constants.NIDM["AcquisitionObject"]))
     graph.add((acquisition, Constants.NIDM["hadAcquisitionModality"],
                Constants.NIDM["MagneticResonanceImaging"]))
-    graph.add((acquisition, Constants.NIDM["hadImageUsageType"], Constants.NIDM["Anatomical"]))
+    graph.add((acquisition, Constants.NIDM["hadImageUsageType"], Constants.NIDM[usage]))
     graph.add((acquisition, Constants.PROV["wasGeneratedBy"], activity))
     assoc = BNode()
     graph.add((activity, Constants.PROV["qualifiedAssociation"], assoc))
@@ -305,10 +305,13 @@ def _add_assessment(graph, agent, name):
     graph.add((assoc, Constants.PROV["agent"], agent))
 
 
-def _two_nodes_with_one_id(owners):
+def _two_nodes_with_one_id(owners, functional=(), names=("first", "second")):
+    """Nodes storing the same id 0050002, each with an assessment; the nodes
+    numbered in owners also own an anatomical MRI acquisition, those in
+    functional only a functional one."""
     graph = Graph()
     nodes = []
-    for name in ("first", "second"):
+    for name in names:
         node = URIRef(f"http://example.org/agent/{name}")
         graph.add((node, RDF.type, Constants.PROV["Agent"]))
         graph.add((node, RDF.type, Constants.PROV["Person"]))
@@ -316,6 +319,8 @@ def _two_nodes_with_one_id(owners):
         _add_assessment(graph, node, f"assessment-{name}")
         nodes.append(node)
     acquisitions = {nodes[n]: _add_acquisition(graph, nodes[n], f"t1w-{n}") for n in owners}
+    for n in functional:
+        _add_acquisition(graph, nodes[n], f"bold-{n}", usage="Functional")
     return graph, nodes, acquisitions
 
 
@@ -334,9 +339,12 @@ def test_of_several_matches_the_one_owning_the_anatomical_acquisition_is_chosen(
     assert str(nodes[1 - owner]) in out
 
 
-@pytest.mark.parametrize("owners", [set(), {0, 1}], ids=["neither-owns", "both-own"])
-def test_several_matches_fail_unless_exactly_one_owns_an_anatomical_acquisition(owners):
-    graph, nodes, _ = _two_nodes_with_one_id(owners)
+@pytest.mark.parametrize("owners, functional", [(set(), ()), ({0, 1}, ()), (set(), (0,))],
+                         ids=["neither-owns", "both-own", "one-owns-only-a-functional-acquisition"])
+def test_several_matches_fail_unless_exactly_one_owns_an_anatomical_acquisition(owners, functional):
+    """A functional MRI acquisition is not ownership: only an anatomical one is
+    what the stats were computed from."""
+    graph, nodes, _ = _two_nodes_with_one_id(owners, functional)
     before = set(graph)
 
     with pytest.raises(SubjectLookupError) as err:
@@ -345,7 +353,46 @@ def test_several_matches_fail_unless_exactly_one_owns_an_anatomical_acquisition(
     message = str(err.value)
     assert str(nodes[0]) in message and str(nodes[1]) in message
     assert "anatomical" in message and "no output written" in message
+    assert ("none of them owns" in message) == (not owners)
     assert set(graph) == before
+
+
+def test_the_failure_names_the_candidates_that_own_an_anatomical_acquisition():
+    graph, nodes, _ = _two_nodes_with_one_id({0, 2}, names=("first", "second", "third"))
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, "sub-0050002", STATS, add_to_nidm=True, forceagent=True)
+
+    assert ("2 of them own an anatomical MRI acquisition (%s, %s)" % (nodes[0], nodes[2])
+            in str(err.value))
+
+
+@pytest.mark.parametrize("requested", ["sub-01", "01", "1"])
+def test_the_owner_rule_does_not_choose_between_different_stored_ids(requested):
+    """"sub-01" and "001" are different BIDS labels that only normalise alike,
+    so they may be two participants: the owner of the scan is not chosen over
+    the node that stores the requested label."""
+    graph, (exact, other) = _graph_with_subjects("sub-01", "001")
+    _add_assessment(graph, exact, "assessment-exact")
+    _add_acquisition(graph, other, "t1w-other")
+    before = set(graph)
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, requested, STATS, add_to_nidm=True, forceagent=True)
+
+    message = str(err.value)
+    assert "%s (sub-01)" % exact in message and "%s (001)" % other in message
+    assert "differ" in message and "no output written" in message
+    assert set(graph) == before
+
+
+def test_a_miss_lists_each_stored_id_once():
+    graph, _, _ = _two_nodes_with_one_id({0})
+
+    with pytest.raises(SubjectLookupError) as err:
+        add_seg_data(graph, "sub-0050009", STATS, add_to_nidm=True, forceagent=True)
+
+    assert str(err.value).count("0050002") == 1
 
 
 # find_subject is the lookup add_seg_data uses, public so that a BIDS app can
